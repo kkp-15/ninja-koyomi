@@ -181,7 +181,8 @@ textarea{min-height:60px;resize:vertical}
 </div>
 <nav class="wrap" style="margin-top:22px;font-size:14px;line-height:1.9">
   <div style="color:var(--sub)">ひとつずつ調べるなら</div>
-  <a href="/nenki/" style="color:var(--ink)">法事・年忌の計算（命日から四十九日・一周忌・三回忌の日付）</a>
+  <a href="/nenki/" style="color:var(--ink)">法事・年忌の計算（命日から四十九日・一周忌・三回忌の日付）</a><br>
+  <a href="/yakudoshi/" style="color:var(--ink)">厄年と長寿祝いの計算（生まれ年から本厄・前厄・後厄と還暦の年）</a>
 </nav>
 <div id="bottom"><div class="in">
   <button class="btn" id="yPrev"></button>
@@ -242,8 +243,8 @@ const HEX = {bday:'#d9a62e', memorial:'#6b5a8e', anniv:'#c77f95', work:'#e8742c'
 const GROUP = c => ['bday','memorial','anniv'].includes(c) ? c : 'other';
 const GROUPS = {bday:'誕生日', memorial:'命日と法事', anniv:'記念日', other:'そのほか'};
 const FIXED = ['bday','memorial','anniv'];
-// 毎年くり返す「ふしめ」の名前（長寿祝いは数え年、結婚記念日は満年数）
-const CHOJU = {61:'還暦',70:'古希',77:'喜寿',80:'傘寿',88:'米寿',90:'卒寿',99:'白寿',100:'百寿'};
+// 毎年くり返す「ふしめ」の名前（長寿祝いと結婚記念日は満年数）
+const CHOJU = {60:'還暦',70:'古希',77:'喜寿',80:'傘寿',88:'米寿',90:'卒寿',99:'白寿',100:'百寿'}; // 満年齢で祝うことが多い
 const KON = {1:'紙婚式',2:'綿婚式',3:'革婚式',4:'花婚式',5:'木婚式',6:'鉄婚式',7:'銅婚式',8:'ゴム婚式',9:'陶器婚式',10:'錫婚式',15:'水晶婚式',20:'磁器婚式',25:'銀婚式',30:'真珠婚式',35:'珊瑚婚式',40:'ルビー婚式',45:'サファイア婚式',50:'金婚式',55:'エメラルド婚式',60:'ダイヤモンド婚式'};
 const CHUIN = [['初七日',7],['四十九日',49],['百か日',100]];
 const NENKI = {1:'一周忌',2:'三回忌',6:'七回忌',12:'十三回忌',16:'十七回忌',22:'二十三回忌',26:'二十七回忌',32:'三十三回忌',49:'五十回忌'};
@@ -289,8 +290,8 @@ function occ(y){
     if (!on[GROUP(e.cat)]) continue;
     const [ey,em,ed]=e.date.split('-').map(Number), t=(sample?'（見本）':'')+e.title;
     if (e.cat==='bday'){
-      if (y<ey) continue; const age=y-ey, kz=age+1;
-      out.push({m:em,d:at(em,ed),e,label:`${t}の誕生日（${age}歳）${CHOJU[kz]?`・${CHOJU[kz]}の年`:''}`,big:!!CHOJU[kz]});
+      if (y<ey) continue; const age=y-ey;
+      out.push({m:em,d:at(em,ed),e,label:`${t}の誕生日（${age}歳）${CHOJU[age]?`・${CHOJU[age]}`:''}`,big:!!CHOJU[age]});
     } else if (e.cat==='memorial'){
       for (const [n,day] of CHUIN){ const x=new Date(ey,em-1,ed+day-1); if (x.getFullYear()===y) out.push({m:x.getMonth()+1,d:x.getDate(),e,label:`${t}の${n}`,big:true,hoyo:true}); }
       const k=y-ey;

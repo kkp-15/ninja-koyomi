@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>厄年と長寿祝いの計算｜生まれ年で本厄・前厄・後厄と還暦・古希の年が分かる｜2026・2027年早見表</title>
+<meta name="description" content="生まれ年と性別を選ぶだけで、今年が本厄・前厄・後厄か、次の厄年はいつか、還暦・古希・喜寿・米寿などの長寿祝いが何年かを出します。2026年・2027年の厄年早見表つき。入力はこの端末の中だけで計算します。">
+<meta name="theme-color" content="#fbf6ea">
+<link rel="canonical" href="https://koyomi.kkpwebninja.com/yakudoshi/">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<meta property="og:title" content="厄年と長寿祝いの計算｜生まれ年で本厄・前厄・後厄と還暦の年">
+<meta property="og:description" content="生まれ年と性別を選ぶだけで、今年の厄年と次の厄年、還暦・古希などの長寿祝いの年が分かります。">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://koyomi.kkpwebninja.com/yakudoshi/">
+<meta property="og:site_name" content="らせんカレンダー">
+<meta name="twitter:card" content="summary">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"厄年と長寿祝いの計算","url":"https://koyomi.kkpwebninja.com/yakudoshi/","description":"生まれ年から厄年（本厄・前厄・後厄）と長寿祝いの年を計算する無料ツール","applicationCategory":"LifestyleApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"JPY"},"author":{"@type":"Organization","name":"web忍者の砦"}}
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-2LM85GJN0L"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-2LM85GJN0L');</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&family=Zen+Old+Mincho:wght@600&display=swap" rel="stylesheet">
+<style>
+/* らせんカレンダーと同じ紙と墨。今年の答えを大きく1つ、その下に一覧 */
+:root{
+  --bg:#fbf6ea; --paper:#fffdf7; --ink:#3a2e22; --sub:#8a6f4a; --line:#eadcc0; --accent:#e8742c; --soft:#fbeadb;
+  --yaku:#b4475a; --yaku-soft:#f7e3e6; --gold:#b98a1e; --gold-soft:#f6ecd2;
+  --f-body:"Zen Maru Gothic",system-ui,sans-serif; --f-num:"Zen Old Mincho","Hiragino Mincho ProN",serif;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);line-height:1.75;font-size:16px}
+main{max-width:640px;margin:0 auto;padding:20px max(16px,env(safe-area-inset-right)) 40px max(16px,env(safe-area-inset-left))}
+h1{font-family:var(--f-num);font-size:26px;line-height:1.35;margin:8px 0 4px;text-wrap:balance}
+.lead{color:var(--sub);margin:0 0 18px;font-size:15px}
+.lead a,.note a{color:var(--accent)}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:16px}
+label{display:block;font-size:14px;color:var(--sub);margin-bottom:6px}
+select{font:inherit;font-size:17px;width:100%;min-height:48px;border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:#fff;color:var(--ink)}
+.sex{display:flex;gap:8px;margin-top:12px}
+.sex button{flex:1;font:inherit;min-height:48px;border-radius:10px;border:1px solid var(--line);background:#fff;cursor:pointer;color:var(--ink)}
+.sex button[aria-pressed=true]{background:var(--ink);color:#fff;border-color:var(--ink)}
+button:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.privacy{font-size:13px;color:var(--sub);margin:10px 0 0}
+#ans{margin-top:14px}
+#ans .k{font-size:14px;color:var(--sub)}
+#ans .big{font-family:var(--f-num);font-size:30px;line-height:1.3;margin:2px 0}
+#ans .big.yaku{color:var(--yaku)}
+#ans .sub{font-size:15px}
+.pill{display:inline-block;border-radius:999px;padding:2px 12px;font-size:14px;margin-top:8px}
+.pill.yaku{background:var(--yaku-soft);color:var(--yaku)}
+.pill.gold{background:var(--gold-soft);color:var(--gold)}
+h2{font-family:var(--f-num);font-size:20px;margin:28px 0 8px}
+.tbl{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;background:var(--paper);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.tbl th,.tbl td{text-align:left;padding:10px;border-bottom:1px solid var(--line);font-size:15px;vertical-align:top}
+.tbl th{font-weight:700}
+.tbl .s{display:block;color:var(--sub);font-size:12px;font-weight:500}
+.tbl tr.past{color:#a3967f}
+.tbl tr.now{background:var(--yaku-soft)}
+.tbl tr.now.gold{background:var(--gold-soft)}
+.tbl td.y{white-space:nowrap}
+.tabs{display:flex;gap:6px;margin-bottom:8px}
+.tabs button{font:inherit;min-height:44px;padding:0 16px;border-radius:999px;border:1px solid var(--line);background:#fff;cursor:pointer}
+.tabs button[aria-pressed=true]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cols .tbl th,.cols .tbl td{font-size:14px;padding:8px}
+.go{display:block;margin-top:14px;text-align:center;background:var(--accent);color:#fff;text-decoration:none;font-weight:700;border-radius:10px;padding:12px;min-height:48px}
+.note{font-size:14px;color:var(--sub);line-height:1.8;padding-left:1.2em}
+.note li{margin-bottom:6px}
+details{margin-top:10px;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:10px 14px}
+summary{cursor:pointer;font-weight:700;min-height:32px}
+</style>
+</head>
+<body>
+<main>
+  <h1>厄年と長寿祝いの計算</h1>
+  <p class="lead">生まれ年を選ぶと、今年が厄年か、次の厄年と還暦・古希などのお祝いの年を出します。家族の誕生日とまとめて毎年見るなら <a href="/">らせんカレンダー</a> へ。</p>
+
+  <div class="card">
+    <label for="by">生まれ年</label>
+    <select id="by"></select>
+    <div class="sex" role="group" aria-label="性別（厄年の年齢が男女で違います）">
+      <button type="button" data-s="m" aria-pressed="true">男性</button>
+      <button type="button" data-s="f" aria-pressed="false">女性</button>
+    </div>
+    <p class="privacy">選んだ内容はこの端末の中だけで計算し、どこにも送りません。</p>
+  </div>
+
+  <section id="ans" class="card" aria-live="polite">
+    <div class="k" id="aK"></div>
+    <div class="big" id="aBig"></div>
+    <div class="sub" id="aSub"></div>
+    <span class="pill" id="aPill" hidden></span>
+  </section>
+
+  <h2 id="hY">厄年の一覧</h2>
+  <table class="tbl"><tbody id="tY"></tbody></table>
+
+  <h2 id="hC">長寿祝いの一覧</h2>
+  <table class="tbl"><tbody id="tC"></tbody></table>
+  <a class="go" href="/">家族の誕生日をらせんカレンダーに入れる</a>
+
+  <h2>厄年早見表（数え年）</h2>
+  <div class="tabs" role="group" aria-label="年"><button type="button" data-y="0" aria-pressed="true"></button><button type="button" data-y="1" aria-pressed="false"></button></div>
+  <div class="cols">
+    <table class="tbl"><thead><tr><th colspan="2">男性</th></tr></thead><tbody id="qM"></tbody></table>
+    <table class="tbl"><thead><tr><th colspan="2">女性</th></tr></thead><tbody id="qF"></tbody></table>
+  </div>
+
+  <h2>数え方について</h2>
+  <ul class="note">
+    <li>厄年は<b>数え年</b>で数えます。生まれた年を1歳とし、元日がくるたびに1歳を足します（その年の数え年＝その年 − 生まれ年 ＋ 1）。</li>
+    <li>男性は25歳・42歳・61歳、女性は19歳・33歳・37歳・61歳が本厄で、その前の年が前厄、後の年が後厄です。男性42歳・女性33歳は大厄とされます。</li>
+    <li>年の区切りを立春（2月4日ごろ）とする神社や、満年齢で数えるお寺もあります。女性の61歳を入れない地域もあります。お参りする神社やお寺の案内も確かめてください。</li>
+    <li>長寿祝いは、もとは数え年で祝うものでしたが、今は満年齢（誕生日）で祝うことが多いので、表は満年齢で出しています。還暦だけは満60歳（数え61歳）で、どちらで数えても同じ年です。家族の考えに合わせて、どちらで祝ってもかまいません。</li>
+  </ul>
+  <details>
+    <summary>参考にした資料</summary>
+    <ul class="note">
+      <li><a href="https://www.jinjahoncho.or.jp/omairi/yakubarai/" target="_blank" rel="noopener">神社本庁「厄祓い」（男性・女性の厄年）</a></li>
+      <li><a href="https://www.yasaka-jinja.or.jp/sanpai/rites-of-life/climacteric-year/" target="_blank" rel="noopener">八坂神社「厄年」</a></li>
+      <li><a href="https://www.kawasakidaishi.com/yakuyoke/yakudoshi/" target="_blank" rel="noopener">川崎大師「厄年」（満年齢での数え方の例）</a></li>
+    </ul>
+  </details>
+</main>
+
+<!-- WEBNINJA_UNIFIED_FOOTER -->
+<footer style="text-align:center;padding:2rem 1rem 2.5rem;font-size:.875rem;color:#607490;line-height:2;border-top:1px solid #f0e6d2;margin-top:2.5rem;background:#fffcf7;">
+  <div style="font-weight:800;color:#8b6b3d;font-size:.875rem;margin-bottom:0.4rem;">web忍者の砦</div>
+  <div>
+    <a href="https://kkpwebninja.com/" target="_blank" rel="noopener" style="color:#8b6b3d;text-decoration:none;margin:0 0.5rem;">本丸トップ</a>·
+    <a href="https://kkpwebninja.com/apps" target="_blank" rel="noopener" style="color:#8b6b3d;text-decoration:none;margin:0 0.5rem;">全アプリ一覧</a>·
+    <a href="https://privacypolicy.kkpwebninja.com/" target="_blank" rel="noopener" style="color:#8b6b3d;text-decoration:none;margin:0 0.5rem;">プライバシーポリシー</a>·
+    <a href="https://kkpwebninja.com/otoiawase" target="_blank" rel="noopener" style="color:#8b6b3d;text-decoration:none;margin:0 0.5rem;">お問い合わせ</a>
+  </div>
+  <div style="margin-top:0.5rem;color:#846e40;">© 2025-2026 web忍者の砦</div>
+</footer>
+
+<script>
+// 本厄は数え年。前厄・後厄はその前後
+const YAKU = {m:[25,42,61], f:[19,33,37,61]};
+const TAIYAKU = {m:42, f:33};
+// 長寿祝い。今は満年齢（誕生日）で祝うことが多い。もとは数え年（還暦だけは数え61＝満60）
+const CHOJU = [['還暦',60],['古希',70],['喜寿',77],['傘寿',80],['米寿',88],['卒寿',90],['白寿',99],['百寿',100]];
+const KZ = {還暦:61,古希:70,喜寿:77,傘寿:80,米寿:88,卒寿:90,白寿:99,百寿:100};
+const TY = new Date().getFullYear();
+const $ = id=>document.getElementById(id);
+function wareki(y){ const e = y>=2019?['令和',2018]:y>=1989?['平成',1988]:y>=1926?['昭和',1925]:y>=1912?['大正',1911]:['明治',1867]; const n=y-e[1]; return e[0]+(n===1?'元':n)+'年'; }
+const yr = y=>`${y}年（${wareki(y)}）`;
+let sex='m';
+
+// その年が何の厄か（なければ null）
+function yakuOf(by, y, s){
+  const kz=y-by+1;
+  for (const a of YAKU[s]){
+    if (kz===a) return {k:'本厄', kz, big: a===TAIYAKU[s]};
+    if (kz===a-1) return {k:'前厄', kz, big: a===TAIYAKU[s]};
+    if (kz===a+1) return {k:'後厄', kz, big: a===TAIYAKU[s]};
+  }
+  return null;
+}
+
+function render(){
+  const by=+$('by').value, s=sex;
+  const now=yakuOf(by,TY,s);
+  // 今年の答え
+  $('aK').textContent = `${TY}年（数え${TY-by+1}歳）は`;
+  const pill=$('aPill'); pill.hidden=true;
+  if (now){
+    $('aBig').textContent = `${now.big?'大厄の':''}${now.k}です`; $('aBig').className='big yaku';
+    $('aSub').textContent = '厄払いは、年の初めから節分ごろまでに受ける人が多いです。';
+  } else {
+    let n=null; for (let y=TY+1; y<TY+80; y++){ const r=yakuOf(by,y,s); if (r){ n={y,...r}; break; } }
+    $('aBig').textContent='厄年ではありません'; $('aBig').className='big';
+    $('aSub').textContent = n ? `次は ${yr(n.y)} の${n.k}（数え${n.kz}歳）です。` : 'この先の厄年はありません。';
+  }
+  const ch = CHOJU.find(([n,a])=>by+a===TY);
+  if (ch){ pill.hidden=false; pill.className='pill gold'; pill.textContent=`今年の誕生日で${ch[0]}（満${ch[1]}歳）`; }
+
+  // 厄年の一覧
+  $('hY').textContent = `${sex==='m'?'男性':'女性'}・${yr(by)}生まれの厄年`;
+  const rows=[];
+  for (const a of YAKU[s]) for (const [k,d] of [['前厄',-1],['本厄',0],['後厄',1]]){
+    const y=by+a+d-1; rows.push({y,k,kz:a+d,big:a===TAIYAKU[s]&&d===0});
+  }
+  $('tY').innerHTML = rows.map(r=>`<tr class="${r.y<TY?'past':''}${r.y===TY?' now':''}"><th>${r.big?'大厄 ':''}${r.k}<span class="s">数え${r.kz}歳</span></th><td class="y">${yr(r.y)}</td></tr>`).join('');
+
+  // 長寿祝いの一覧
+  $('tC').innerHTML = CHOJU.map(([n,a])=>{ const y=by+a, yk=by+KZ[n]-1; return `<tr class="${y<TY?'past':''}${y===TY?' now gold':''}"><th>${n}<span class="s">満${a}歳</span></th><td class="y">${yr(y)}の誕生日<span class="s">${yk===y?'数え年で祝っても同じ年':`数え年（${KZ[n]}歳）で祝うなら ${yk}年`}</span></td></tr>`; }).join('');
+}
+
+// 早見表（今年と来年）
+let qy=TY;
+function renderQuick(){
+  document.querySelectorAll('.tabs button').forEach(b=>{ const y=TY+ +b.dataset.y; b.textContent=`${y}年`; b.setAttribute('aria-pressed', String(y===qy)); });
+  const line=(s)=>{ const out=[]; for (const a of YAKU[s]) for (const [k,d] of [['前厄',-1],['本厄',0],['後厄',1]]){ const kz=a+d, by=qy-kz+1; out.push(`<tr class="${d===0?'now':''}"><th>${d===0&&a===TAIYAKU[s]?'大厄':k}<span class="s">数え${kz}歳</span></th><td>${by}年<span class="s">${wareki(by)}生</span></td></tr>`); } return out.join(''); };
+  $('qM').innerHTML=line('m'); $('qF').innerHTML=line('f');
+}
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{ qy=TY+ +b.dataset.y; renderQuick(); });
+
+// 生まれ年の選択肢（和暦つき）。はじめは40年前
+for (let y=TY; y>=1920; y--) $('by').add(new Option(`${y}年（${wareki(y)}）`, y));
+$('by').value = TY-40;
+$('by').onchange=render;
+document.querySelectorAll('.sex button').forEach(b=>b.onclick=()=>{ sex=b.dataset.s; document.querySelectorAll('.sex button').forEach(x=>x.setAttribute('aria-pressed', String(x===b))); render(); });
+render(); renderQuick();
+</script>
+</body>
+</html>

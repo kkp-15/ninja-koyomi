@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>法事・年忌の計算｜命日を入れると一周忌・三回忌・四十九日の日付と曜日｜無料・登録不要</title>
+<meta name="description" content="命日を入れるだけで、四十九日・一周忌・三回忌・七回忌から五十回忌までの日付と曜日、法要を開くことが多い前の土日をまとめて出します。入力した日付はこの端末の中だけで計算し、どこにも送りません。">
+<meta name="theme-color" content="#f7f3ea">
+<link rel="canonical" href="https://koyomi.kkpwebninja.com/nenki/">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<meta property="og:title" content="法事・年忌の計算｜命日から一周忌・三回忌の日付と曜日">
+<meta property="og:description" content="命日を入れるだけで、四十九日から五十回忌までの日付・曜日・前の土日が分かります。">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://koyomi.kkpwebninja.com/nenki/">
+<meta property="og:site_name" content="法事・年忌の計算">
+<meta name="twitter:card" content="summary">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"法事・年忌の計算","url":"https://koyomi.kkpwebninja.com/nenki/","description":"命日から四十九日・一周忌・三回忌などの法要の日付と曜日を計算する無料ツール","applicationCategory":"LifestyleApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"JPY"},"author":{"@type":"Organization","name":"web忍者の砦"}}
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-2LM85GJN0L"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-2LM85GJN0L');</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&family=Zen+Old+Mincho:wght@600&display=swap" rel="stylesheet">
+<style>
+/* 落ち着いた紙と墨。強い色は使わず、次の法要だけを大きく見せる */
+:root{
+  --bg:#f7f3ea; --paper:#fffdf8; --ink:#2f2a24; --sub:#7a6b55; --line:#e4dac6; --accent:#6b5a8e; --soft:#efe9f6;
+  --f-body:"Zen Maru Gothic",system-ui,sans-serif; --f-num:"Zen Old Mincho","Hiragino Mincho ProN",serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);line-height:1.75;font-size:16px}
+main{max-width:640px;margin:0 auto;padding:20px max(16px,env(safe-area-inset-right)) 40px max(16px,env(safe-area-inset-left))}
+h1{font-family:var(--f-num);font-size:26px;line-height:1.35;margin:8px 0 4px;text-wrap:balance}
+.lead{color:var(--sub);margin:0 0 18px;font-size:15px}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:16px}
+label{display:block;font-size:14px;color:var(--sub);margin-bottom:6px}
+input[type=date],input[type=text]{font:inherit;font-size:18px;width:100%;min-height:48px;border:1px solid var(--line);border-radius:10px;padding:8px 12px;background:#fff;color:var(--ink)}
+.row{display:grid;grid-template-columns:1fr;gap:14px}
+.opts{display:flex;gap:16px;flex-wrap:wrap;font-size:14px;color:var(--sub)}
+.opts label{display:flex;align-items:center;gap:6px;margin:0;color:var(--ink);min-height:44px}
+.opts input{width:20px;height:20px}
+.btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+button{font:inherit;min-height:44px;border-radius:10px;border:1px solid var(--line);background:#fff;padding:0 14px;cursor:pointer;color:var(--ink)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+#next{margin-top:14px;display:none}
+#next .k{font-size:14px;color:var(--sub)}
+#next .name{font-family:var(--f-num);font-size:30px;line-height:1.3;margin:2px 0}
+#next .date{font-family:var(--f-num);font-size:24px}
+#next .left{display:inline-block;margin-top:6px;background:var(--soft);color:var(--accent);border-radius:999px;padding:2px 12px;font-size:14px}
+#next .wkend{margin-top:10px;font-size:14px;color:var(--sub)}
+#next .wkend b{color:var(--ink)}
+h2{font-family:var(--f-num);font-size:20px;margin:28px 0 8px}
+.tbl{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;background:var(--paper);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.tbl th,.tbl td{text-align:left;padding:10px 10px;border-bottom:1px solid var(--line);font-size:15px;vertical-align:top}
+.tbl th{font-weight:700;white-space:nowrap}
+.tbl td.d{white-space:nowrap}
+.tbl .n{display:block;color:var(--sub);font-size:12px;font-weight:500}
+.tbl th{white-space:normal}
+.tbl tr.past{color:#a3967f}
+.tbl tr.past th{font-weight:500}
+.tbl tr.nx{background:var(--soft)}
+.su{color:#b4475a}.sa{color:#3f63a8}
+.note{font-size:14px;color:var(--sub);line-height:1.8}
+.note li{margin-bottom:6px}
+details{margin-top:10px;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:10px 14px}
+summary{cursor:pointer;font-weight:700;min-height:32px}
+.src a{color:var(--accent)}
+.privacy{font-size:13px;color:var(--sub);margin-top:10px}
+</style>
+</head>
+<body>
+<main>
+  <h1>法事・年忌の計算</h1>
+  <p class="lead">命日を入れると、四十九日から五十回忌までの日付と曜日を出します。家族の誕生日や記念日とまとめて見るなら <a href="/" style="color:var(--accent)">らせんカレンダー</a> へ。</p>
+
+  <div class="card">
+    <label for="death">亡くなった日（命日）</label>
+    <input type="date" id="death">
+    <p class="privacy" id="privacy">入れた日付はこの端末の中だけで計算し、どこにも送りません。</p>
+  </div>
+
+  <section id="next" class="card" aria-live="polite">
+    <div class="k" id="nk">次の法要</div>
+    <div class="name" id="nname"></div>
+    <div class="date" id="ndate"></div>
+    <span class="left" id="nleft"></span>
+    <div class="wkend" id="nweek"></div>
+  </section>
+
+  <details id="more">
+    <summary>お名前・数え方・この端末に覚える</summary>
+    <div class="row" style="margin-top:10px">
+      <div>
+        <label for="who">お名前（なくても大丈夫です・表の見出しに使います）</label>
+        <input type="text" id="who" maxlength="20" placeholder="例: 父">
+      </div>
+      <div class="opts" role="group" aria-label="四十九日までの数え方">
+        <label><input type="radio" name="base" value="0" checked>命日の当日から数える</label>
+        <label><input type="radio" name="base" value="1">命日の前日（逮夜）から数える</label>
+      </div>
+      <div class="btns">
+        <button type="button" id="keep">この端末に覚えておく</button>
+        <button type="button" id="forget">覚えた日付を消す</button>
+      </div>
+    </div>
+  </details>
+
+  <div id="tables"></div>
+
+  <h2>数え方について</h2>
+  <ul class="note">
+    <li>一周忌は亡くなってから満1年目の命日です。三回忌からは亡くなった日を「1回目」と数えるので、三回忌は満2年、七回忌は満6年の命日になります。</li>
+    <li>年忌法要は一周忌のあと、三と七のつく年に営み、三十三回忌か五十回忌で区切ることが多いです。</li>
+    <li>四十九日までの法要（初七日・二七日…）は、命日の当日を1日目として7日ごとに数えます。地域によっては命日の前日（逮夜）から数えるので、上で切り替えられます。</li>
+    <li>実際の法要は、命日より前の土日に開くことが多いです。日取りは、お寺や親族と相談して決めてください。宗派や地域によって数え方や営む回が違うことがあります。</li>
+  </ul>
+  <details class="src">
+    <summary>参考にした資料</summary>
+    <ul class="note">
+      <li><a href="https://jodo.or.jp/tips/sankaiki" target="_blank" rel="noopener">浄土宗「よくあるご質問」（三回忌の数え方）</a></li>
+      <li><a href="https://jodo.or.jp/tool/" target="_blank" rel="noopener">浄土宗「中陰表・年回表」（当日・逮夜の2つの数え方）</a></li>
+      <li><a href="https://www.tendai.or.jp/houwashuu/kiji.php?nid=50" target="_blank" rel="noopener">天台宗 法話集「年回の数え方がわからないのですが」</a></li>
+    </ul>
+  </details>
+</main>
+
+<!-- WEBNINJA_UNIFIED_FOOTER -->
+<footer style="text-align:center;padding:2rem 1rem 2.5rem;font-size:.875rem;color:#607490;line-height:2;border-top:1px solid #f0e6d2;margin-top:2.5rem;background:#fffcf7;">
+  <div style="font-weight:800;color:#8b6b3d;font-size:.875rem;margin-bottom:0.4rem;">web忍者の砦</div>
+  <div>
+    <a href="https://kkpwebninja.com/" target="_blank" rel="noopener" style="color:#8b6b3d;text-decoration:none;margin:0 0.5rem;">本丸トップ</a>·
+    <a href="https://kkpwebninja.com/apps" target="_blank" rel="noopener" style="color:#8b6b3d;text-decoration:none;margin:0 0.5rem;">全アプリ一覧</a>·
+    <a href="https://privacypolicy.kkpwebninja.com/" target="_blank" rel="noopener" style="color:#8b6b3d;text-decoration:none;margin:0 0.5rem;">プライバシーポリシー</a>·
+    <a href="https://kkpwebninja.com/otoiawase" target="_blank" rel="noopener" style="color:#8b6b3d;text-decoration:none;margin:0 0.5rem;">お問い合わせ</a>
+  </div>
+  <div style="margin-top:0.5rem;color:#846e40;">© 2025-2026 web忍者の砦</div>
+</footer>
+
+<script>
+// 法要の一覧。年回は「満◯年」、中陰は「命日から◯日目」
+const CHUIN = [
+  ['初七日（しょなのか）',7],['二七日（ふたなのか）',14],['三七日（みなのか）',21],['四七日（よなのか）',28],
+  ['五七日（いつなのか）',35],['六七日（むなのか）',42],['四十九日（七七日）',49],['百か日',100],
+];
+const NENKI = [
+  ['一周忌',1],['三回忌',2],['七回忌',6],['十三回忌',12],['十七回忌',16],
+  ['二十三回忌',22],['二十七回忌',26],['三十三回忌',32],['五十回忌',49],
+];
+const WD = ['日','月','火','水','木','金','土'];
+const KEY = 'nenki-v1';
+const $ = id=>document.getElementById(id);
+
+const fmt = d=>`${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`;
+const wd = d=>{ const w=d.getDay(); return `<span class="${w===0?'su':w===6?'sa':''}">（${WD[w]}）</span>`; };
+const addDays = (d,n)=>new Date(d.getFullYear(), d.getMonth(), d.getDate()+n);
+// 満◯年の命日。2月29日に亡くなった場合、うるう年でない年は2月28日にする
+function addYears(d,n){ const y=d.getFullYear()+n, m=d.getMonth(); const last=new Date(y,m+1,0).getDate(); return new Date(y,m,Math.min(d.getDate(),last)); }
+// その日より前（当日を含まない）の、いちばん近い土曜と日曜
+function prevWeekend(d){ const out=[]; for(let i=1;i<=14&&out.length<2;i++){ const x=addDays(d,-i); if(x.getDay()===0||x.getDay()===6) out.unshift(x); } return out; }
+const today = ()=>{ const t=new Date(); return new Date(t.getFullYear(),t.getMonth(),t.getDate()); };
+
+function list(death, base){
+  const items=[];
+  for (const [n,day] of CHUIN) items.push({name:n, date:addDays(death, day-1-base), kind:'中陰', note:`命日から${day}日目`});
+  for (const [n,y] of NENKI) items.push({name:n, date:addYears(death,y), kind:'年回', note:`満${y}年`});
+  return items;
+}
+
+function render(){
+  const v=$('death').value;
+  if (!v){ $('next').style.display='none'; $('tables').innerHTML=''; return; }
+  const [y,m,d]=v.split('-').map(Number), death=new Date(y,m-1,d);
+  const base=+document.querySelector('input[name=base]:checked').value;
+  const who=$('who').value.trim();
+  const items=list(death,base), t=today();
+  const nx=items.find(i=>i.date>=t);
+  if (nx){
+    const days=Math.round((nx.date-t)/864e5);
+    $('next').style.display='block';
+    $('nk').textContent = who ? `${who}の次の法要` : '次の法要';
+    $('nname').textContent=nx.name;
+    $('ndate').innerHTML=fmt(nx.date)+wd(nx.date);
+    $('nleft').textContent = days===0 ? '今日です' : `あと${days}日`;
+    const we=prevWeekend(nx.date);
+    $('nweek').innerHTML = (nx.date.getDay()===0||nx.date.getDay()===6) ? '命日がちょうど土日です。' : `前の土日に開くなら <b>${we.map(x=>fmt(x).replace(/^\d+年/,'')+'（'+WD[x.getDay()]+'）').join('・')}</b>`;
+  } else { $('next').style.display='none'; }
+  const table=(title,arr)=>`<h2>${title}</h2><table class="tbl"><tbody>${arr.map(i=>`<tr class="${i.date<t?'past':''}${i===nx?' nx':''}"><th scope="row">${i.name}<span class="n">${i.note}</span></th><td class="d">${fmt(i.date)}${wd(i.date)}</td></tr>`).join('')}</tbody></table>`;
+  $('tables').innerHTML = table(`${who?who+'の':''}四十九日までの法要`, items.filter(i=>i.kind==='中陰')) + table(`${who?who+'の':''}年忌法要（一周忌から五十回忌）`, items.filter(i=>i.kind==='年回'));
+}
+
+// 覚えておくのは、押したときだけ
+try{ const s=JSON.parse(localStorage.getItem(KEY)); if(s){ $('death').value=s.death||''; $('who').value=s.who||''; if(s.base) document.querySelector(`input[name=base][value="${s.base}"]`).checked=true; } }catch(e){}
+$('keep').onclick=()=>{ try{ localStorage.setItem(KEY, JSON.stringify({death:$('death').value, who:$('who').value.trim(), base:document.querySelector('input[name=base]:checked').value})); $('privacy').textContent='この端末に覚えました。次に開いたときも表示されます。'; }catch(e){ $('privacy').textContent='覚えられませんでした（ブラウザの設定で保存が止められています）。'; } };
+$('forget').onclick=()=>{ try{ localStorage.removeItem(KEY); }catch(e){} $('death').value=''; $('who').value=''; render(); $('privacy').textContent='覚えた日付を消しました。'; };
+['death','who'].forEach(id=>$(id).addEventListener('input',render));
+document.querySelectorAll('input[name=base]').forEach(r=>r.addEventListener('change',render));
+render();
+</script>
+</body>
+</html>

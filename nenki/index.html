@@ -88,6 +88,7 @@ summary{cursor:pointer;font-weight:700;min-height:32px}
     <div class="date" id="ndate"></div>
     <span class="left" id="nleft"></span>
     <div class="wkend" id="nweek"></div>
+    <button type="button" id="toKoyomi" style="margin-top:12px;width:100%">この命日をらせんカレンダーに入れる</button>
   </section>
 
   <details id="more">
@@ -197,6 +198,17 @@ $('keep').onclick=()=>{ try{ localStorage.setItem(KEY, JSON.stringify({death:$('
 $('forget').onclick=()=>{ try{ localStorage.removeItem(KEY); }catch(e){} $('death').value=''; $('who').value=''; render(); $('privacy').textContent='覚えた日付を消しました。'; };
 ['death','who'].forEach(id=>$(id).addEventListener('input',render));
 document.querySelectorAll('input[name=base]').forEach(r=>r.addEventListener('change',render));
+// らせんカレンダー（同じサイトのトップ）へ命日を1件足して移る。URLに日付や名前は載せない
+$('toKoyomi').onclick=()=>{
+  const v=$('death').value; if(!v) return;
+  try{
+    const K='rasen-koyomi-v1', list=JSON.parse(localStorage.getItem(K))||[];
+    const title=$('who').value.trim()||'故人';
+    if(!list.some(e=>e.cat==='memorial'&&e.date===v&&e.title===title)) list.push({id:Date.now().toString(36), title, date:v, cat:'memorial', yearly:true, memo:''});
+    localStorage.setItem(K, JSON.stringify(list));
+    location.href='/';
+  }catch(e){ $('privacy').textContent='入れられませんでした（ブラウザの設定で保存が止められています）。'; }
+};
 render();
 </script>
 </body>

@@ -23,143 +23,202 @@
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-2LM85GJN0L');</script>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&family=Zen+Old+Mincho:wght@600&display=swap" rel="stylesheet">
 <style>
-/* 上：年をまたぐらせん（全体を見渡して選ぶ）／下：普通の月カレンダー（日付を読む）／最下段：選んだ日の前年・今年・来年 */
+/* らせん（年をまたいで見渡す）の輪の中に、前年・今年・来年の同じ月の紙を重ねる。下に選んだ日の3年分 */
 :root{
   --bg:#fbf6ea; --paper:#fffdf7; --ink:#3a2e22; --sub:#8a6f4a; --line:#eadcc0;
-  --accent:#e8742c; --night:#2f2a3a;
-  --c-work:#e8742c; --c-kagura:#c9475f; --c-family:#3b8f6b; --c-money:#4473c4; --c-other:#8f8063;
+  --accent:#e8742c;
   --f-body:"Zen Maru Gothic",system-ui,sans-serif; --f-num:"Zen Old Mincho","Hiragino Mincho ProN",serif;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 96px}
 button,input,select,textarea{font:inherit;color:inherit}
 .wrap{max-width:520px;margin:0 auto}
-header{display:flex;align-items:center;gap:6px;padding-block:10px 2px}
-h1{font-size:17px;margin:0 auto 0 0;letter-spacing:.06em}
-.btn{border:1px solid var(--line);background:var(--paper);border-radius:10px;min-height:44px;min-width:44px;padding:0 10px;cursor:pointer}
-.btn:focus-visible,.cell:focus-visible,.peek:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+header{display:flex;align-items:center;gap:4px;padding-block:10px 2px}
+h1{font-size:15px;margin:0 auto 0 0;letter-spacing:.04em;white-space:nowrap}
+.btn{border:1px solid var(--line);background:var(--paper);border-radius:10px;min-height:44px;min-width:44px;padding:0 10px;cursor:pointer;white-space:nowrap}
+.btn:focus-visible,.cell:focus-visible,.ev:focus-visible,.pick:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .btn.main{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
-#ym{font-family:var(--f-num);font-size:24px;min-width:96px;text-align:center;line-height:1.05}
+#ym{font-family:var(--f-num);font-size:22px;min-width:66px;text-align:center;line-height:1.05}
 #ym small{font-family:var(--f-body);font-size:12px;color:var(--sub);display:block}
 
-/* らせん */
+/* 種類（4つ） */
+#cats{display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding-block:8px 2px}
+.chip{border:1px solid var(--line);background:var(--paper);border-radius:999px;padding:0 12px;min-height:44px;display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer}
+.chip i{width:10px;height:10px;border-radius:50%}
+.chip.off{opacity:.45}
+.chip.off i{background:transparent!important;box-shadow:inset 0 0 0 1.5px var(--sub)}
+#catsN{font-size:12px;color:var(--sub);margin-left:auto}
+
+/* らせんの盤面 */
 #board{position:relative;margin:4px auto 0;width:100%;max-width:460px;aspect-ratio:1/1.26;border-radius:28px;
   background:radial-gradient(70% 70% at 50% 50%,#fffaf0 0%,#f7eedb 62%,#efe2c7 100%)}
 #spiral{position:absolute;inset:0}
 #cv{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
-#spiral .hint{position:absolute;left:0;right:0;bottom:6px;text-align:center;font-size:11px;color:var(--sub);pointer-events:none}
-#cats{display:flex;gap:6px;overflow-x:auto;padding-block:8px 2px;scrollbar-width:none}
-.chip{flex:none;border:1px solid var(--line);background:var(--paper);border-radius:999px;padding:0 11px;min-height:34px;display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer}
-.chip i{width:10px;height:10px;border-radius:50%}
-.chip.off{opacity:.35}
+#views{position:absolute;right:10px;top:10px;z-index:3;display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--paper)}
+#views button{border:0;background:transparent;min-height:36px;min-width:52px;font-size:12px;cursor:pointer}
+#views button[aria-pressed=true]{background:var(--ink);color:#fff}
+#hint{position:absolute;left:0;right:0;bottom:10px;text-align:center;font-size:13px;color:var(--sub);pointer-events:none;z-index:3}
+
+/* 紙：今年はしっかりした紙、前年・来年は数字を消した淡い枠。同じ日は同じ位置（1〜7日が1段目） */
 #cal{position:absolute;left:50%;top:50%;width:62%;transform:translate(-50%,-50%);z-index:2;perspective:620px;perspective-origin:50% 12%}
 #stack{position:relative;transform-style:preserve-3d;transform:rotateX(var(--tilt,45deg))}
-.sheet{transform:translateZ(calc(var(--k,0) * var(--gap,68px)))}
-/* 紙：見ている年は紙、前後の年はガラスのように透ける。同じ日は同じ位置（1〜7日が1段目） */
-.sheet{position:relative;background:color-mix(in srgb,var(--paper) 70%,transparent);border:1px solid var(--line);border-radius:14px;padding:6px 4px 5px;
-  box-shadow:0 18px 30px -16px rgba(58,46,34,.55), 0 1px 0 rgba(255,255,255,.6) inset;transform-style:preserve-3d}
-.sheet.ghost{position:absolute;inset:0;pointer-events:none;background:color-mix(in srgb,var(--paper) 38%,transparent);box-shadow:none;border-color:color-mix(in srgb,var(--sub) 45%,transparent)}
-.sheet.ghost .n{color:var(--sub);opacity:.32}
-.sheet.ghost .w{visibility:hidden}
-.sheet.ghost .cell.sel .n{opacity:1}
+.sheet{position:relative;transform:translateZ(calc(var(--k,0) * var(--gap,68px)));background:color-mix(in srgb,var(--paper) 94%,transparent);border:1px solid var(--line);border-radius:12px;padding:8px 6px 8px;
+  box-shadow:0 22px 34px -20px rgba(58,46,34,.42),0 2px 6px rgba(58,46,34,.08);transform-style:preserve-3d}
+.sheet.ghost{position:absolute;inset:0;pointer-events:none;background:color-mix(in srgb,var(--paper) 14%,transparent);box-shadow:none;border:1px dashed rgba(138,111,74,.45)}
+.sheet.ghost .n{opacity:0}
+.sheet.ghost .w,.sheet.ghost .dots,.sheet.ghost .order{visibility:hidden}
+.sheet.ghost .cell.has .n{opacity:.55;color:var(--sub)}
+.sheet.ghost .cell.sel .n{opacity:1;color:var(--ink);font-weight:700}
 .sheet.ghost .cell.sel .w{visibility:visible;font-weight:700;color:var(--ink)}
 .sheet.ghost .cell.sel{background:color-mix(in srgb,var(--accent) 22%,transparent);box-shadow:inset 0 0 0 2px var(--accent)}
-.sheet.ghost .cell.sel .n{color:var(--ink);font-weight:700}
 .sheet .yl{position:absolute;right:6px;top:-14px;font-family:var(--f-num);font-size:12px;color:var(--ink);background:var(--bg);padding:0 7px;border-radius:6px;border:1px solid var(--line);white-space:nowrap}
 .sheet.ghost .yl{color:var(--sub)}
+.sheet .order{position:absolute;left:8px;top:-13px;font-size:11px;color:var(--sub);background:var(--bg);padding:0 6px;border-radius:6px}
 .wk{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
 .su{color:#c9475f!important}.sa{color:#4473c4!important}
-.cell{position:relative;min-height:36px;border-radius:7px;border:0;background:transparent;padding:2px 0 2px;display:flex;flex-direction:column;align-items:center;gap:0;cursor:pointer}
-.cell .n{font-family:var(--f-num);font-size:15px;line-height:1;width:22px;height:22px;display:grid;place-items:center;border-radius:50%}
-.cell .w{font-size:8px;line-height:1;color:var(--sub)}
+.cell{position:relative;min-height:38px;border-radius:7px;border:0;background:transparent;padding:3px 0 2px;display:flex;flex-direction:column;align-items:center;gap:1px;cursor:pointer}
+.cell .n{font-family:var(--f-num);font-size:16px;line-height:1;width:24px;height:24px;display:grid;place-items:center;border-radius:50%}
+.cell .w{font-size:10px;line-height:1;color:var(--sub)}
 .cell .mark{position:absolute;inset:3px;border-radius:7px;pointer-events:none}
+.cell .dots{display:flex;gap:2px;height:6px;margin-top:1px;justify-content:center}
+.cell .dots i{width:6px;height:6px;border-radius:50%}
 .cell.sel{background:color-mix(in srgb,var(--accent) 14%,transparent);box-shadow:inset 0 0 0 2px var(--accent)}
 .cell.tod .n{color:#fff!important;background:var(--ink)}
 .cell.out{visibility:hidden}
-#pillar{position:absolute;width:2px;margin-left:-1px;background:linear-gradient(to top,rgba(232,116,44,.0),rgba(232,116,44,.8),rgba(232,116,44,.0));transform-origin:50% 100%;pointer-events:none}
-.legend{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;font-size:11px;color:var(--sub);padding-top:8px}
+#pillar{position:absolute;width:3px;margin-left:-1.5px;background:linear-gradient(to top,rgba(232,116,44,0),rgba(232,116,44,.95),rgba(232,116,44,0));transform-origin:50% 100%;pointer-events:none}
+@media (max-width:430px){
+  #cal{width:84%}
+  .cell{min-height:44px}
+  .cell .n{font-size:17px}
+  .cell .w{font-size:11px}
+}
+.legend{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;font-size:12px;color:var(--sub);padding-top:8px}
 .legend i{display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--sub);margin-right:4px;vertical-align:-1px}
-.legend i.g{background:color-mix(in srgb,var(--sub) 35%,transparent)}
-@media (prefers-reduced-motion:reduce){#stack{transition:none}}
+.legend i.g{background:transparent;border:1px dashed var(--sub)}
+
+/* 見本の案内 */
+#intro{margin-top:12px;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:12px}
+#intro p{margin:0 0 10px;font-size:14px;line-height:1.7}
+#intro .acts{display:flex;gap:8px}
+#intro .btn{min-height:48px}
+#intro .main{flex:1}
 
 /* 選んだ日の3年分 */
-#detail{border-top:1px solid var(--line);padding-top:10px}
+#detail{border-top:1px solid var(--line);padding-top:10px;margin-top:12px}
 #dTitle{font-family:var(--f-num);font-size:22px;margin:0 0 4px}
 .yr{display:grid;grid-template-columns:72px 1fr;gap:8px;padding:8px 0;border-bottom:1px dashed var(--line);align-items:start}
 .yr .y{font-size:13px;color:var(--sub);line-height:1.4}
 .yr.cur .y{color:var(--ink);font-weight:700}
-.yr.other{opacity:.6}
-.ev{display:flex;align-items:center;gap:8px;min-height:34px;cursor:pointer;min-width:0}
-.ev span{overflow-wrap:anywhere}
+.yr.other{opacity:.62}
+.ev{display:flex;align-items:center;gap:8px;min-height:44px;min-width:0;font-size:16px}
+.ev.edit{cursor:pointer}
+.ev .t{flex:1;min-width:0;overflow-wrap:anywhere;line-height:1.45}
+.ev .t small{display:block;font-size:13px;color:var(--sub)}
 .ev i{width:10px;height:10px;border-radius:50%;flex:none}
-.ev em{font-style:normal;font-size:11px;color:var(--sub);flex:none}
-.empty{color:var(--sub);font-size:13px;min-height:34px;display:flex;align-items:center}
+.ev em{font-style:normal;font-size:12px;color:var(--sub);flex:none}
+.empty{color:var(--sub);font-size:14px;min-height:44px;display:flex;align-items:center}
 
-#bottom{position:fixed;left:0;right:0;bottom:0;z-index:5;display:flex;gap:8px;background:linear-gradient(transparent,var(--bg) 35%);
+#bottom{position:fixed;left:0;right:0;bottom:0;z-index:5;background:linear-gradient(transparent,var(--bg) 35%);
   padding:14px max(16px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+#bottom .in{max-width:520px;margin:0 auto;display:flex;gap:8px}
 #bottom .main{flex:1}
+
+/* パソコン：らせんと3年分を左右に */
+@media (min-width:960px){
+  .wrap.app{max-width:1000px;display:grid;grid-template-columns:460px 1fr;column-gap:32px;grid-template-areas:"head head" "cats cats" "board detail" "legend detail" "intro detail"}
+  .wrap.app header{grid-area:head}.wrap.app #cats{grid-area:cats}.wrap.app #board{grid-area:board}.wrap.app .legend{grid-area:legend}.wrap.app #intro{grid-area:intro}
+  .wrap.app #detail{grid-area:detail;border-top:0;margin-top:4px;align-self:start}
+  #bottom .in{max-width:1000px}
+}
+
 dialog{border:none;border-radius:16px;padding:0;width:min(520px,94vw);background:var(--bg);color:var(--ink)}
 dialog::backdrop{background:rgba(58,46,34,.35)}
 form{padding:16px;display:flex;flex-direction:column;gap:12px}
 form h2{font-size:17px;margin:0}
 label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--sub)}
-input[type=text],input[type=date],select,textarea{border:1px solid var(--line);background:var(--paper);border-radius:10px;padding:10px;min-height:44px;font-size:16px}
+input[type=text],select,textarea{border:1px solid var(--line);background:var(--paper);border-radius:10px;padding:10px;min-height:44px;font-size:16px}
 textarea{min-height:60px;resize:vertical}
+.ymd{display:grid;grid-template-columns:2fr 1fr 1fr;gap:6px}
+.ymd select{min-width:0;width:100%;padding:10px 6px}
 .check{flex-direction:row;align-items:center;gap:10px;color:var(--ink);font-size:15px;min-height:44px}
 .check input{width:22px;height:22px}
 .acts{display:flex;gap:8px;flex-wrap:wrap}
 .acts .main{flex:1}
+.picks{display:flex;flex-direction:column;gap:8px}
+.pick{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;min-height:56px;padding:8px 14px;border:1px solid var(--line);background:var(--paper);border-radius:12px;cursor:pointer}
+.pick b{font-size:16px;display:flex;align-items:center;gap:8px}
+.pick b i{width:10px;height:10px;border-radius:50%}
+.pick span{font-size:13px;color:var(--sub)}
 .small{font-size:12px;color:var(--sub);line-height:1.6;margin:0}
+.linkbtn{border:0;background:none;color:var(--sub);text-decoration:underline;padding:0;min-height:32px;cursor:pointer;align-self:flex-start;font-size:13px}
 </style>
 </head>
 <body>
 
-
-<div class="wrap">
+<div class="wrap app">
 <header>
   <h1>らせんカレンダー</h1>
   <button class="btn" id="prevM" aria-label="前の月">‹</button>
   <div id="ym" aria-live="polite"></div>
   <button class="btn" id="nextM" aria-label="次の月">›</button>
-  <button class="btn" id="menuB" aria-label="控え">…</button>
+  <button class="btn" id="menuB">設定</button>
 </header>
 <div id="cats"></div>
 <div id="board">
-  <div id="spiral"><canvas id="cv" aria-label="年ごとに1周するらせん。回すと月が変わり、押すとその日を選びます"></canvas></div>
+  <div id="spiral"><canvas id="cv" aria-label="年ごとに1周するらせん。横になぞると月が変わり、押すとその日を選びます"></canvas></div>
+  <div id="views" role="group" aria-label="見る角度"><button type="button" data-p="0.78">ななめ</button><button type="button" data-p="1.2">真上</button></div>
   <div id="cal"></div>
+  <div id="hint" hidden>← なぞると月が変わります →</div>
 </div>
-<div class="legend"><span><i></i>今年の予定</span><span><i class="g"></i>前年・来年の同じ日（上＝来年・下＝前年）</span><span>横になぞると月が変わり、上下になぞると角度が変わります</span></div>
+<div class="legend"><span><i></i>今年の紙</span><span><i class="g"></i>前年（下）・来年（上）の同じ日</span></div>
+<div id="intro" hidden>
+  <p id="introT"></p>
+  <div class="acts"><button class="btn main" type="button" id="introAdd">家族の日を入れる</button><button class="btn" type="button" id="introClear">見本を消す</button></div>
+</div>
 <div id="detail"><p id="dTitle"></p><div id="rows"></div></div>
 </div>
 <nav class="wrap" style="margin-top:22px;font-size:14px;line-height:1.9">
   <div style="color:var(--sub)">ひとつずつ調べるなら</div>
   <a href="/nenki/" style="color:var(--ink)">法事・年忌の計算（命日から四十九日・一周忌・三回忌の日付）</a>
 </nav>
-<div id="bottom">
-  <button class="btn" id="yPrev">前の年</button>
-  <button class="btn" id="yNext">次の年</button>
-  <button class="btn" id="tiltB" aria-label="見る角度を変える">角度</button>
+<div id="bottom"><div class="in">
+  <button class="btn" id="yPrev"></button>
   <button class="btn" id="todayB">今日</button>
+  <button class="btn" id="yNext"></button>
   <button class="btn main" id="addB">追加</button>
-</div>
+</div></div>
 
 <dialog id="dlg"><form id="fm">
-  <h2 id="fmTitle">予定を追加</h2>
-  <label id="lT">なにを<input type="text" id="fT" required maxlength="40" placeholder="例: 確定申告のしめきり"></label>
-  <label id="lD">いつ<input type="date" id="fD" required></label>
-  <label>種類<select id="fC"></select></label>
-  <label class="check"><input type="checkbox" id="fY">毎年くり返す</label>
-  <label>メモ<textarea id="fM" maxlength="200"></textarea></label>
-  <div class="acts"><button class="btn" id="fDel" type="button">消す</button><button class="btn" id="fCancel" type="button">やめる</button><button class="btn main" id="fSave" type="submit">保存</button></div>
+  <div id="step1">
+    <h2>なにを入れますか</h2>
+    <div class="picks" style="margin-top:12px">
+      <button type="button" class="pick" data-c="bday"><b><i style="background:#d9a62e"></i>誕生日</b><span>年齢と、還暦などのお祝いの年が毎年出ます</span></button>
+      <button type="button" class="pick" data-c="memorial"><b><i style="background:#6b5a8e"></i>命日</b><span>四十九日・一周忌・三回忌などが出ます</span></button>
+      <button type="button" class="pick" data-c="anniv"><b><i style="background:#c77f95"></i>結婚記念日</b><span>◯周年と、◯◯婚式の名前が出ます</span></button>
+      <button type="button" class="pick" data-c="other"><b><i style="background:#8f8063"></i>そのほかの予定</b><span>1回だけ・毎年、どちらでも</span></button>
+    </div>
+    <div class="acts" style="margin-top:12px"><button class="btn" type="button" id="fCancel1">やめる</button></div>
+  </div>
+  <div id="step2" hidden style="flex-direction:column;gap:12px">
+    <h2 id="fmTitle">誕生日を入れる</h2>
+    <label id="lT"><span id="lTt">だれの</span><input type="text" id="fT" required maxlength="40" placeholder="例: 母"></label>
+    <div><span class="small" id="lDt" style="display:block;margin-bottom:4px;font-size:13px">生まれた日</span>
+      <div class="ymd"><select id="fYy" aria-label="年"></select><select id="fMm" aria-label="月"></select><select id="fDd" aria-label="日"></select></div></div>
+    <label class="check" id="lY"><input type="checkbox" id="fY">毎年くり返す</label>
+    <button type="button" class="linkbtn" id="memoB">メモを足す</button>
+    <label id="lM" hidden>メモ<textarea id="fM" maxlength="200"></textarea></label>
+    <div class="acts"><button class="btn" id="fDel" type="button">消す</button><button class="btn" id="fCancel" type="button">やめる</button><button class="btn main" id="fSave" type="submit">保存</button></div>
+  </div>
 </form></dialog>
 
 <dialog id="menu"><form id="mf">
-  <h2>設定</h2>
-  <label>あなたの誕生日（入れると、各年に何歳だったかが出ます）<input type="date" id="bd"></label>
-  <p class="small">家族の誕生日は「予定を追加」で種類を「誕生日」にして入れると、毎年その人が何歳になるかが出ます。</p>
-  <h2>控え</h2>
-  <p class="small">予定はこの端末の中だけに保存され、どこにも送られません。機種変更やデータ削除の前に控えをコピーして、メモ帳などに残してください。</p>
+  <h2>あなたの誕生日</h2>
+  <p class="small">入れると、紙の年の札とその日の一覧に「◯歳」が出ます。</p>
+  <div class="ymd"><select id="bdY" aria-label="年"></select><select id="bdM" aria-label="月"></select><select id="bdD" aria-label="日"></select></div>
+  <h2>データの控え</h2>
+  <p class="small">入れた日付はこの端末の中だけに保存され、どこにも送られません。機種変更やデータ削除の前に控えをコピーして、メモ帳などに残してください。</p>
   <button class="btn" type="button" id="exp">控えをコピー</button>
   <label>控え（戻すときはここに貼る）<textarea id="bk" spellcheck="false"></textarea></label>
   <div class="acts"><button class="btn" type="button" id="rst">控えから戻す</button><button class="btn main" type="button" id="mClose">閉じる</button></div>
@@ -178,43 +237,48 @@ textarea{min-height:60px;resize:vertical}
   <div style="margin-top:0.5rem;color:#846e40;">© 2025-2026 web忍者の砦</div>
 </footer>
 <script>
-const CATS = {bday:'誕生日', memorial:'命日・法事', anniv:'記念日', work:'仕事', kagura:'神楽', family:'家族', money:'お金・手続き', other:'その他'};
+// 保存の種類は増やしたまま（前の版の予定も読める）。画面では4つにまとめる
 const HEX = {bday:'#d9a62e', memorial:'#6b5a8e', anniv:'#c77f95', work:'#e8742c', kagura:'#c9475f', family:'#3b8f6b', money:'#4473c4', other:'#8f8063'};
+const GROUP = c => ['bday','memorial','anniv'].includes(c) ? c : 'other';
+const GROUPS = {bday:'誕生日', memorial:'命日と法事', anniv:'記念日', other:'そのほか'};
+const FIXED = ['bday','memorial','anniv'];
 // 毎年くり返す「ふしめ」の名前（長寿祝いは数え年、結婚記念日は満年数）
 const CHOJU = {61:'還暦',70:'古希',77:'喜寿',80:'傘寿',88:'米寿',90:'卒寿',99:'白寿',100:'百寿'};
 const KON = {1:'紙婚式',2:'綿婚式',3:'革婚式',4:'花婚式',5:'木婚式',6:'鉄婚式',7:'銅婚式',8:'ゴム婚式',9:'陶器婚式',10:'錫婚式',15:'水晶婚式',20:'磁器婚式',25:'銀婚式',30:'真珠婚式',35:'珊瑚婚式',40:'ルビー婚式',45:'サファイア婚式',50:'金婚式',55:'エメラルド婚式',60:'ダイヤモンド婚式'};
 const CHUIN = [['初七日',7],['四十九日',49],['百か日',100]];
 const NENKI = {1:'一周忌',2:'三回忌',6:'七回忌',12:'十三回忌',16:'十七回忌',22:'二十三回忌',26:'二十七回忌',32:'三十三回忌',49:'五十回忌'};
-const SKEY = 'kasane-settings-v1';
-let settings = {};
-try { settings = JSON.parse(localStorage.getItem(SKEY)) || {}; } catch(e) { settings = {}; }
-function saveSettings(){ try{ localStorage.setItem(SKEY, JSON.stringify(settings)); }catch(e){} }
-// その日に何歳か（誕生日が入っているとき）
-function ageAt(birth, y, m, d){ if(!birth) return null; const [by,bm,bd]=birth.split('-').map(Number); let a=y-by; if (m<bm || (m===bm && d<bd)) a--; return a; }
-function ageLabel(y){ const a=ageAt(settings.birthday, y, M, Math.min(D,dim(y,M))); return a===null||a<0 ? '' : `・${a}歳`; }
 const WD = ['日','月','火','水','木','金','土'];
-const KEY = 'rasen-koyomi-v1';
+const KEY = 'rasen-koyomi-v1', SKEY = 'kasane-settings-v1', HKEY = 'koyomi-hint-done';
 const T = new Date(), TY = T.getFullYear(), TM = T.getMonth()+1, TD = T.getDate();
 const pad = n=>String(n).padStart(2,'0');
 const dim = (y,m)=>new Date(y,m,0).getDate();
-const esc = s=>s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const esc = s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const $ = id=>document.getElementById(id);
+// 和暦（改元の年は新しい元号で書く）
+function wareki(y){ const e = y>=2019?['令和',2018]:y>=1989?['平成',1988]:y>=1926?['昭和',1925]:y>=1912?['大正',1911]:['明治',1867]; const n=y-e[1]; return e[0]+(n===1?'元':n); }
+
+let settings = {};
+try { settings = JSON.parse(localStorage.getItem(SKEY)) || {}; } catch(e) { settings = {}; }
+function saveSettings(){ try{ localStorage.setItem(SKEY, JSON.stringify(settings)); }catch(e){} }
+function ageAt(birth, y, m, d){ if(!birth) return null; const [by,bm,bd]=birth.split('-').map(Number); let a=y-by; if (m<bm || (m===bm && d<bd)) a--; return a; }
+function ageLabel(y){ const a=ageAt(settings.birthday, y, M, Math.min(D,dim(y,M))); return a===null||a<0 ? '' : `・${a}歳`; }
 
 let events = [];
 try { events = JSON.parse(localStorage.getItem(KEY)) || []; } catch(e) { events = []; }
-// はじめて開いたときだけ、見方が分かる見本を入れる（「見本」と付けてあるので消してかまわない）
-if (!events.length) events = [
-  {id:'s1', title:'（見本）母', date:`${TY-59}-${pad(TM)}-${pad(Math.min(TD+3,28))}`, cat:'bday', yearly:true, memo:''},
-  {id:'s2', title:'（見本）祖父', date:`${TY-2}-${pad(TM)}-${pad(Math.max(TD-4,1))}`, cat:'memorial', yearly:true, memo:''},
-  {id:'s3', title:'（見本）結婚記念日', date:`${TY-10}-${pad(TM===12?11:TM+1)}-10`, cat:'anniv', yearly:true, memo:''},
-  {id:'s4', title:'（見本）確定申告のしめきり', date:`${TY}-03-15`, cat:'money', yearly:true, memo:''},
+// はじめて開いたときだけ見本を出す（保存はしない。最初に1件入れたら消える）
+let sample = !events.length;
+const SAMPLE_DAY = Math.max(TD-4,1);
+if (sample) events = [
+  {id:'s1', title:'祖父', date:`${TY-2}-${pad(TM)}-${pad(SAMPLE_DAY)}`, cat:'memorial', yearly:true, memo:''},
+  {id:'s2', title:'母', date:`${TY-59}-${pad(TM)}-${pad(Math.min(TD+3,28))}`, cat:'bday', yearly:true, memo:''},
+  {id:'s3', title:'結婚記念日', date:`${TY-10}-${pad(TM===12?11:TM+1)}-10`, cat:'anniv', yearly:true, memo:''},
 ];
-function save(){ try{ localStorage.setItem(KEY, JSON.stringify(events)); }catch(e){ note('保存できませんでした。ブラウザの設定を確認してください。'); } }
-function note(t){ const n=document.getElementById('note'); n.textContent=t; n.hidden=false; }
+function save(){ if (sample) return; try{ localStorage.setItem(KEY, JSON.stringify(events)); }catch(e){ note('保存できませんでした。ブラウザの設定を確認してください。'); } }
+function note(t){ const n=$('note'); n.textContent=t; n.hidden=false; }
 
-let Y = TY, M = TM, D = TD;
-const on = Object.fromEntries(Object.keys(CATS).map(k=>[k,true]));
+let Y = TY, M = TM, D = sample ? SAMPLE_DAY : TD;
+const on = {bday:true, memorial:true, anniv:true, other:true};
 
-// その年月日に出る予定（毎年くり返すものは登録した年から先に出す）
 // その年に出るもの。誕生日・命日・記念日からは、年齢や回忌などの「ふしめ」を自動で作る
 const occCache = new Map();
 function occ(y){
@@ -222,15 +286,15 @@ function occ(y){
   const out=[];
   const at=(m,d)=> (m===2 && d===29 && dim(y,2)===28) ? 28 : d;
   for (const e of events){
-    if (!on[e.cat]) continue;
-    const [ey,em,ed]=e.date.split('-').map(Number), t=e.title;
+    if (!on[GROUP(e.cat)]) continue;
+    const [ey,em,ed]=e.date.split('-').map(Number), t=(sample?'（見本）':'')+e.title;
     if (e.cat==='bday'){
       if (y<ey) continue; const age=y-ey, kz=age+1;
       out.push({m:em,d:at(em,ed),e,label:`${t}の誕生日（${age}歳）${CHOJU[kz]?`・${CHOJU[kz]}の年`:''}`,big:!!CHOJU[kz]});
     } else if (e.cat==='memorial'){
-      for (const [n,day] of CHUIN){ const x=new Date(ey,em-1,ed+day-1); if (x.getFullYear()===y) out.push({m:x.getMonth()+1,d:x.getDate(),e,label:`${t}の${n}`,big:true}); }
+      for (const [n,day] of CHUIN){ const x=new Date(ey,em-1,ed+day-1); if (x.getFullYear()===y) out.push({m:x.getMonth()+1,d:x.getDate(),e,label:`${t}の${n}`,big:true,hoyo:true}); }
       const k=y-ey;
-      if (k>=1) out.push({m:em,d:at(em,ed),e,label: NENKI[k] ? `${t}の${NENKI[k]}` : `${t}の祥月命日`, big:!!NENKI[k]});
+      if (k>=1) out.push({m:em,d:at(em,ed),e,label: NENKI[k] ? `${t}の${NENKI[k]}` : `${t}の祥月命日`, big:!!NENKI[k], hoyo:!!NENKI[k]});
       else if (k===0) out.push({m:em,d:ed,e,label:`${t}の命日`});
     } else if (e.cat==='anniv'){
       if (y<ey) continue; const n=y-ey;
@@ -242,10 +306,12 @@ function occ(y){
   occCache.set(y,out); return out;
 }
 function eventsOn(y,m,d){ return occ(y).filter(o=>o.m===m&&o.d===d); }
+// 法要を開くことが多い、その日より前の土日
+function prevWeekend(y,m,d){ const out=[]; for(let i=1;i<=14&&out.length<2;i++){ const x=new Date(y,m-1,d-i); if(x.getDay()===0||x.getDay()===6) out.unshift(x); } return out; }
 
 /* ---------- らせん ---------- */
-const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
-const R = 1, H = 0.46, SPAN = 2;          // 見ている年の前後2年まで描く
+const cv = $('cv'), ctx = cv.getContext('2d');
+const R = 1, H = 0.46, SPAN = 2;
 let yaw = 0, yawTarget = 0, pitch = 0.78, hits = [], dayHits = [];
 const yearLen = y=>(Date.UTC(y+1,0,1)-Date.UTC(y,0,1))/864e5;
 const frac = (y,m,d)=>(Date.UTC(y,m-1,d)-Date.UTC(y,0,1))/864e5/yearLen(y);
@@ -260,7 +326,6 @@ function proj(p,W,Hh){
   return {sx:W/2+x*sc*k, sy:Hh*0.49-y*sc*k, k, z};
 }
 const alphaOf = y=>{ const d=Math.abs(y-Y); return d===0?1:d===1?.34:.12; };
-// 選んだ月が手前に来る向き
 function aimYaw(){ const a = ang(frac(Y,M,Math.min(D,dim(Y,M)))); yawTarget = Math.PI/2 - a; }
 
 function drawSpiral(){
@@ -268,48 +333,39 @@ function drawSpiral(){
   if (cv.width!==W*dpr || cv.height!==Hh*dpr){ cv.width=W*dpr; cv.height=Hh*dpr; }
   ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,W,Hh);
   ctx.textAlign='center'; ctx.lineCap='round';
+  // 床の影
+  { const c=proj({x:0,y:-H*1.05,z:0},W,Hh); const g=ctx.createRadialGradient(c.sx,c.sy,0,c.sx,c.sy,sc*1.05);
+    g.addColorStop(0,'rgba(58,46,34,.16)'); g.addColorStop(1,'rgba(58,46,34,0)');
+    ctx.save(); ctx.translate(c.sx,c.sy); ctx.scale(1,Math.max(.15,Math.sin(pitch))); ctx.translate(-c.sx,-c.sy);
+    ctx.fillStyle=g; ctx.beginPath(); ctx.arc(c.sx,c.sy,sc*1.05,0,Math.PI*2); ctx.fill(); ctx.restore(); }
   const segs=[];
-  for (let y=Y-SPAN; y<=Y+SPAN; y++){
-    for (let j=0;j<240;j++){
-      const f0=j/240, f1=(j+1)/240, a=proj(P(y,f0),W,Hh), b=proj(P(y,f1),W,Hh);
-      segs.push({a,b,y,z:(a.z+b.z)/2});
-    }
+  for (let y=Y-SPAN; y<=Y+SPAN; y++) for (let j=0;j<240;j++){
+    const a=proj(P(y,j/240),W,Hh), b=proj(P(y,(j+1)/240),W,Hh); segs.push({a,b,y,z:(a.z+b.z)/2});
   }
-  // 奥から描くと、手前の線が上に重なって立体に見える
+  // 奥から描くと、手前の線が上に重なって立体に見える。見ている年は太い墨色、手前ほど太く濃く
   segs.sort((p,q)=>p.z-q.z);
-  // 見ている年の輪は、太い墨色＋下に淡い影。手前ほど太く濃く、奥ほど細く淡く
   for (const s of segs){
     const near = Math.min(1,Math.max(0,(s.a.k-0.8)/0.45));
-    const cur = s.y===Y;
     ctx.beginPath(); ctx.moveTo(s.a.sx,s.a.sy); ctx.lineTo(s.b.sx,s.b.sy);
-    if (cur){
-      ctx.strokeStyle=`rgba(58,46,34,${0.05+0.07*near})`; ctx.lineWidth=(5+3*near); ctx.stroke();
+    if (s.y===Y){
+      ctx.strokeStyle=`rgba(58,46,34,${0.05+0.07*near})`; ctx.lineWidth=5+3*near; ctx.stroke();
       ctx.beginPath(); ctx.moveTo(s.a.sx,s.a.sy); ctx.lineTo(s.b.sx,s.b.sy);
       ctx.strokeStyle=`rgba(${Math.round(120-60*near)},${Math.round(92-46*near)},${Math.round(60-26*near)},${0.55+0.45*near})`; ctx.lineWidth=2+1.8*near; ctx.stroke();
-    } else {
-      ctx.strokeStyle=`rgba(138,111,74,${alphaOf(s.y)*(0.5+0.5*near)})`; ctx.lineWidth=1.2+1.2*near; ctx.stroke();
-    }
+    } else { ctx.strokeStyle=`rgba(138,111,74,${alphaOf(s.y)*(0.5+0.5*near)})`; ctx.lineWidth=1.2+1.2*near; ctx.stroke(); }
   }
   // 見ている月の弧をオレンジで太く
   ctx.beginPath();
   for (let d=1; d<=dim(Y,M); d++){ const q=proj(P(Y,frac(Y,M,d)),W,Hh); d===1?ctx.moveTo(q.sx,q.sy):ctx.lineTo(q.sx,q.sy); }
   { const q=proj(P(Y,frac(Y,M,dim(Y,M))+1/yearLen(Y)),W,Hh); ctx.lineTo(q.sx,q.sy); }
   ctx.strokeStyle='rgba(232,116,44,.85)'; ctx.lineWidth=5; ctx.stroke();
-  { const c=proj({x:0,y:-H*1.05,z:0},W,Hh); const g=ctx.createRadialGradient(c.sx,c.sy,0,c.sx,c.sy,sc*1.05);
-    g.addColorStop(0,'rgba(58,46,34,.16)'); g.addColorStop(1,'rgba(58,46,34,0)');
-    ctx.save(); ctx.translate(c.sx,c.sy); ctx.scale(1,Math.max(.15,Math.sin(pitch))); ctx.translate(-c.sx,-c.sy);
-    ctx.fillStyle=g; ctx.beginPath(); ctx.arc(c.sx,c.sy,sc*1.05,0,Math.PI*2); ctx.fill(); ctx.restore(); }
-  // 月の名前（見ている年の外側）
+  // 月の名前は手前の半周だけ（紙の後ろに隠れる文字を出さない）
   for (let m=1;m<=12;m++){
     const q=proj(P(Y,frac(Y,m,1)+0.04,R*1.17),W,Hh);
-    ctx.font=(m===M?'700 13px':'500 11px')+' "Zen Maru Gothic"';
-    ctx.fillStyle = m===M ? '#e8742c' : `rgba(58,46,34,${0.3+0.45*Math.min(1,(q.k-0.8)/0.4)})`;
+    if (q.z<=0 && m!==M) continue;
+    ctx.font=(m===M?'700 14px':'500 12px')+' "Zen Maru Gothic"';
+    ctx.fillStyle = m===M ? '#e8742c' : `rgba(58,46,34,${0.45+0.4*Math.min(1,(q.k-0.8)/0.4)})`;
     ctx.fillText(m+'月', q.sx, q.sy+4);
   }
-  // 年の名前
-  { const u=proj({x:0,y:H,z:-R*0.72},W,Hh), d=proj({x:0,y:-H,z:R*0.72},W,Hh);
-    ctx.font='500 11px "Zen Maru Gothic"'; ctx.fillStyle='rgba(138,111,74,.6)';
-    ctx.fillText((Y+1)+'年', u.sx, u.sy+4); ctx.fillText((Y-1)+'年', d.sx, d.sy+4); }
   // 予定の点
   hits=[];
   const pts=[];
@@ -317,7 +373,7 @@ function drawSpiral(){
   pts.sort((a,b)=>a.q.z-b.q.z);
   for (const p of pts){
     ctx.globalAlpha=alphaOf(p.y);
-    ctx.beginPath(); ctx.arc(p.q.sx,p.q.sy,(p.big?6.5:4.5)*p.q.k,0,Math.PI*2); ctx.fillStyle=HEX[p.e.cat]; ctx.fill();
+    ctx.beginPath(); ctx.arc(p.q.sx,p.q.sy,(p.big?6.5:4.5)*p.q.k,0,Math.PI*2); ctx.fillStyle=HEX[p.e.cat]||HEX.other; ctx.fill();
     ctx.globalAlpha=1;
     if (Math.abs(p.y-Y)<=1) hits.push({x:p.q.sx,y:p.q.sy,r:16,y0:p.y,m:p.m,d:p.d});
   }
@@ -327,18 +383,15 @@ function drawSpiral(){
     const g=ctx.createRadialGradient(q.sx,q.sy,0,q.sx,q.sy,16*q.k); g.addColorStop(0,'rgba(232,116,44,.45)'); g.addColorStop(1,'rgba(232,116,44,0)');
     ctx.fillStyle=g; ctx.beginPath(); ctx.arc(q.sx,q.sy,16*q.k,0,Math.PI*2); ctx.fill();
     ctx.beginPath(); ctx.arc(q.sx,q.sy,5*q.k,0,Math.PI*2); ctx.fillStyle='#fff'; ctx.fill(); ctx.strokeStyle='#e8742c'; ctx.lineWidth=2.5; ctx.stroke();
-    // 前年・来年の同じ日を細い線でつなぐ
     const a=proj(P(Y-1,frac(Y-1,M,Math.min(D,dim(Y-1,M)))),W,Hh), b=proj(P(Y+1,frac(Y+1,M,Math.min(D,dim(Y+1,M)))),W,Hh);
     ctx.setLineDash([2,4]); ctx.beginPath(); ctx.moveTo(a.sx,a.sy); ctx.lineTo(b.sx,b.sy); ctx.strokeStyle='rgba(232,116,44,.55)'; ctx.lineWidth=1.3; ctx.stroke(); ctx.setLineDash([]);
   }
-  // 押して選べる日（見ている年と前後1年）
   dayHits=[];
-  for (let y=Y-1;y<=Y+1;y++) for (let n=0;n<yearLen(y);n+=1){
+  for (let y=Y-1;y<=Y+1;y++) for (let n=0;n<yearLen(y);n++){
     const dt=new Date(Date.UTC(y,0,1+n)); const q=proj(P(y,n/yearLen(y)),W,Hh);
     dayHits.push({x:q.sx,y:q.sy,y0:y,m:dt.getUTCMonth()+1,d:dt.getUTCDate(),z:q.z});
   }
 }
-// 回り込みのアニメーション
 let raf=null;
 function animate(){
   const diff = ((yawTarget-yaw+Math.PI*3)%(Math.PI*2))-Math.PI;
@@ -347,15 +400,16 @@ function animate(){
 }
 function spin(){ aimYaw(); if(!raf) raf=requestAnimationFrame(animate); }
 
-// らせんの操作：横に回す・縦に傾ける・押して選ぶ
+// らせんの操作：横に回す（月）・縦に傾ける（角度）・押して選ぶ
 let drag=null, moved=false;
+function setTilt(){ const st=$('stack'); if(st){ st.style.setProperty('--tilt',tiltDeg()+'deg'); st.style.setProperty('--gap',GAP()+'px'); }
+  document.querySelectorAll('#views button').forEach(b=>b.setAttribute('aria-pressed', String(Math.abs(+b.dataset.p-pitch)<0.2))); }
 cv.addEventListener('pointerdown',e=>{ try{ cv.setPointerCapture(e.pointerId); }catch(_){} drag={x:e.clientX,y:e.clientY,yaw,pitch}; moved=false; });
 cv.addEventListener('pointermove',e=>{
   if(!drag) return; const dx=e.clientX-drag.x, dy=e.clientY-drag.y;
   if (Math.abs(dx)+Math.abs(dy)>6) moved=true; if(!moved) return;
   yaw=yawTarget=drag.yaw-dx*0.012; pitch=Math.min(1.25,Math.max(0.35,drag.pitch+dy*0.005));
-  const st=document.getElementById('stack'); if(st){ st.style.setProperty('--tilt',tiltDeg()+'deg'); st.style.setProperty('--gap',GAP()+'px'); }
-  drawSpiral();
+  setTilt(); drawSpiral();
 });
 cv.addEventListener('pointerup',e=>{
   if (drag && !moved){
@@ -365,44 +419,45 @@ cv.addEventListener('pointerup',e=>{
     if (!best){ for (const h of dayHits){ const d=Math.hypot(h.x-x,h.y-y)-h.z*4; if(d<bd){bd=d;best=h;} } if (bd>26) best=null; }
     if (best){ Y=best.y0; M=best.m; D=best.d; render(); }
   } else if (drag && moved){
-    const f=fracOfFront(), dt=new Date(Date.UTC(Y,0,1)+f*yearLen(Y)*864e5);
-    M=dt.getUTCMonth()+1; render();
+    if (Math.abs(drag.yaw-yaw)>0.05){ const f=fracOfFront(), dt=new Date(Date.UTC(Y,0,1)+f*yearLen(Y)*864e5); M=dt.getUTCMonth()+1; }
+    try{ localStorage.setItem(HKEY,'1'); }catch(_){} $('hint').hidden=true;
+    render();
   }
   drag=null;
 });
 cv.addEventListener('pointercancel',()=>drag=null);
+document.querySelectorAll('#views button').forEach(b=>b.onclick=()=>{ pitch=+b.dataset.p; render(); });
 
-/* ---------- 月カレンダー ---------- */
-const cal = document.getElementById('cal');
-const GAP = ()=>H*Math.min(cv.clientWidth,cv.clientHeight)*0.43; // 年と年の高さ（らせんの輪の間隔に合わせる）
+/* ---------- 紙 ---------- */
+const cal = $('cal');
+const GAP = ()=>H*Math.min(cv.clientWidth,cv.clientHeight)*0.43;
 const tiltDeg = ()=>90-pitch*180/Math.PI;
 function sheetHTML(y,k){
   const n=dim(y,M); let cells='';
   for (let d=1; d<=35; d++){
     if (d>n){ cells+='<div class="cell out"></div>'; continue; }
     const w=new Date(y,M-1,d).getDay(), evs=eventsOn(y,M,d);
-    const mark = evs.length ? `<span class="mark" style="background:${HEX[evs[0].e.cat]};opacity:${k===0?.16:.5}"></span>` : '';
-    const dots = k===0 ? `<span class="dots">${evs.slice(0,3).map(o=>`<i style="background:${HEX[o.e.cat]}"></i>`).join('')}</span>` : '';
-    const sel = (d===D)?' sel':'', tod=(y===TY&&M===TM&&d===TD)?' tod':'';
+    const mark = evs.length ? `<span class="mark" style="background:${HEX[evs[0].e.cat]||HEX.other};opacity:${k===0?(evs.some(o=>o.big)?.4:.28):.18}"></span>` : '';
+    const dots = k===0 ? `<span class="dots">${evs.slice(0,3).map(o=>`<i style="background:${HEX[o.e.cat]||HEX.other}"></i>`).join('')}</span>` : '';
+    const cls = (d===D?' sel':'')+(y===TY&&M===TM&&d===TD?' tod':'')+(evs.length?' has':'');
+    const wc = w===0?'su':w===6?'sa':'';
     cells += k===0
-      ? `<button type="button" class="cell${sel}${tod}" data-d="${d}" aria-label="${M}月${d}日（${WD[w]}）${evs.length?'・予定'+evs.length+'件':''}">${mark}<span class="n ${w===0?'su':w===6?'sa':''}">${d}</span><span class="w">${WD[w]}</span>${dots}</button>`
-      : `<div class="cell${sel}${tod}">${mark}<span class="n ${w===0?'su':w===6?'sa':''}">${d}</span><span class="w">${WD[w]}</span></div>`;
+      ? `<button type="button" class="cell${cls}" data-d="${d}" aria-label="${M}月${d}日（${WD[w]}）${evs.length?'・予定'+evs.length+'件':''}">${mark}<span class="n ${wc}">${d}</span><span class="w ${wc}">${WD[w]}</span>${dots}</button>`
+      : `<div class="cell${cls}">${mark}<span class="n ${wc}">${d}</span><span class="w ${wc}">${WD[w]}</span></div>`;
   }
-  const op = k===0?1:.78;
-  return `<div class="sheet${k?' ghost':''}" style="--k:${k};opacity:${op}"><span class="yl">${y}年${ageLabel(y)}</span><div class="wk">${cells}</div></div>`;
+  return `<div class="sheet${k?' ghost':''}" style="--k:${k};opacity:${k?.9:1}"><span class="order">1日から7日ずつ</span><span class="yl">${y}年${ageLabel(y)}</span><div class="wk">${cells}</div></div>`;
 }
 function renderCal(){
   cal.innerHTML = `<div id="stack">${sheetHTML(Y-1,-1)}${sheetHTML(Y,0)}${sheetHTML(Y+1,1)}</div>`;
-  const stack=document.getElementById('stack'); const G=GAP();
-  stack.style.setProperty('--gap',G+'px'); stack.style.setProperty('--tilt',tiltDeg()+'deg');
-  const cur=stack.querySelector('.sheet:not(.ghost) .cell.sel');
+  setTilt();
+  const G=GAP(), cur=cal.querySelector('.sheet:not(.ghost) .cell.sel');
   if (cur){
     const p=document.createElement('div'); p.id='pillar';
     p.style.left=(cur.offsetLeft+cur.offsetWidth/2)+'px';
     p.style.top=(cur.offsetTop+cur.offsetHeight/2-G)+'px';
     p.style.height=(G*2)+'px';
     p.style.transform=`translateZ(${-G}px) rotateX(90deg)`;
-    stack.querySelector('.sheet:not(.ghost)').appendChild(p);
+    cal.querySelector('.sheet:not(.ghost)').appendChild(p);
   }
   cal.querySelectorAll('.cell[data-d]').forEach(c=>c.onclick=()=>{ D=+c.dataset.d; render(); });
 }
@@ -411,66 +466,99 @@ cal.addEventListener('pointerdown',e=>{sx=e.clientX;});
 cal.addEventListener('pointerup',e=>{ if(sx!==null&&Math.abs(e.clientX-sx)>50) moveMonth(e.clientX<sx?1:-1); sx=null; });
 
 /* ---------- 選んだ日の3年分 ---------- */
+const md = x=>`${x.getMonth()+1}月${x.getDate()}日（${WD[x.getDay()]}）`;
 function renderDetail(){
-  document.getElementById('dTitle').textContent=`${M}月${D}日`;
-  document.getElementById('rows').innerHTML=[Y+1,Y,Y-1].map(y=>{
+  $('dTitle').textContent=`${M}月${D}日`;
+  $('rows').innerHTML=[Y+1,Y,Y-1].map(y=>{
     const dd=Math.min(D,dim(y,M)), evs=eventsOn(y,M,dd), wd=WD[new Date(y,M-1,dd).getDay()];
-    const list=evs.length?evs.map(o=>`<div class="ev" data-id="${o.e.id}" role="button" tabindex="0"><i style="background:${HEX[o.e.cat]}"></i><span>${esc(o.label)}</span>${o.e.yearly&&!['bday','memorial','anniv'].includes(o.e.cat)?'<em>毎年</em>':''}</div>`).join(''):'<div class="empty">予定なし</div>';
+    const list=evs.length?evs.map(o=>{
+      let sub='';
+      if (o.hoyo){ const dw=new Date(y,o.m-1,o.d).getDay(); sub = (dw===0||dw===6) ? '当日が土日です' : '前の土日: '+prevWeekend(y,o.m,o.d).map(md).join('・'); }
+      const ed = !sample;
+      return `<div class="ev${ed?' edit':''}" ${ed?`data-id="${o.e.id}" role="button" tabindex="0"`:''}><i style="background:${HEX[o.e.cat]||HEX.other}"></i><span class="t">${esc(o.label)}${sub?`<small>${sub}</small>`:''}</span>${ed?'<em>直す</em>':''}</div>`;
+    }).join(''):'<div class="empty">予定なし</div>';
     const ag=ageAt(settings.birthday,y,M,dd); const agt = ag===null||ag<0 ? '' : `<br>${ag}歳`;
     return `<div class="yr ${y===Y?'cur':'other'}"><div class="y">${y}年<br>（${wd}）${agt}</div><div>${list}</div></div>`;
   }).join('');
-  document.querySelectorAll('#rows .ev').forEach(el=>el.onclick=()=>openForm(events.find(e=>e.id===el.dataset.id)));
+  document.querySelectorAll('#rows .ev.edit').forEach(el=>{ const go=()=>openEdit(events.find(e=>e.id===el.dataset.id)); el.onclick=go; el.onkeydown=e=>{ if(e.key==='Enter') go(); }; });
+}
+
+function renderIntro(){
+  const box=$('intro');
+  if (sample){ box.hidden=false; $('introT').textContent='見本です。命日を1回入れると、一周忌・三回忌が毎年ここに並びます。誕生日を入れると年齢と還暦などのお祝いの年が出ます。'; $('introClear').hidden=false; }
+  else if (!events.length){ box.hidden=false; $('introT').textContent='まだ何も入っていません。家族の誕生日や命日を入れると、毎年のふしめがらせんに並びます。'; $('introClear').hidden=true; }
+  else box.hidden=true;
+  $('cats').hidden = sample;
 }
 
 function render(){
   occCache.clear();
   D=Math.min(D,dim(Y,M));
-  document.getElementById('ym').innerHTML=`${M}月<small>${Y}年</small>`;
-  renderCal(); renderDetail(); spin(); drawSpiral();
+  $('ym').innerHTML=`${M}月<small>${Y}年</small>`;
+  $('yPrev').textContent=`‹ ${Y-1}年`; $('yNext').textContent=`${Y+1}年 ›`;
+  renderCal(); renderDetail(); renderIntro(); renderCats(); spin(); drawSpiral();
 }
 function moveMonth(n){ M+=n; if(M<1){M=12;Y--;} if(M>12){M=1;Y++;} render(); }
-document.getElementById('prevM').onclick=()=>moveMonth(-1);
-document.getElementById('nextM').onclick=()=>moveMonth(1);
-document.getElementById('yPrev').onclick=()=>{ Y--; render(); };
-document.getElementById('yNext').onclick=()=>{ Y++; render(); };
-const TILTS=[1.15,0.78,0.5]; let ti=1;
-document.getElementById('tiltB').onclick=()=>{ ti=(ti+1)%TILTS.length; pitch=TILTS[ti]; render(); };
-document.getElementById('todayB').onclick=()=>{ Y=TY; M=TM; D=TD; render(); };
+$('prevM').onclick=()=>moveMonth(-1);
+$('nextM').onclick=()=>moveMonth(1);
+$('yPrev').onclick=()=>{ Y--; render(); };
+$('yNext').onclick=()=>{ Y++; render(); };
+$('todayB').onclick=()=>{ Y=TY; M=TM; D=TD; render(); };
 
-const catsEl=document.getElementById('cats');
-for (const [k,name] of Object.entries(CATS)){
-  const b=document.createElement('button'); b.className='chip'; b.type='button';
-  b.innerHTML=`<i style="background:${HEX[k]}"></i>${name}`;
-  b.onclick=()=>{ on[k]=!on[k]; b.classList.toggle('off',!on[k]); render(); };
-  catsEl.appendChild(b);
+const catsEl=$('cats');
+function renderCats(){
+  catsEl.innerHTML = Object.entries(GROUPS).map(([k,name])=>`<button type="button" class="chip${on[k]?'':' off'}" data-k="${k}" aria-pressed="${on[k]}"><i style="background:${HEX[k]}"></i>${name}</button>`).join('') + `<span id="catsN">表示中 ${Object.values(on).filter(Boolean).length}/4</span>`;
+  catsEl.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{ on[b.dataset.k]=!on[b.dataset.k]; render(); });
 }
 
-/* ---------- 追加・編集 ---------- */
-const dlg=document.getElementById('dlg'), fC=document.getElementById('fC'), fDel=document.getElementById('fDel');
-fC.innerHTML=Object.entries(CATS).map(([k,n])=>`<option value="${k}">${n}</option>`).join('');
-const FORM = {bday:['だれの（名前）','生まれた日（年も）','例: 母'], memorial:['だれの（名前）','亡くなった日（年も）','例: 祖父'], anniv:['なんの記念日','その日（年も）','例: 結婚記念日']};
-fC.onchange=()=>{ const f=FORM[fC.value]||['なにを','いつ','例: 確定申告のしめきり']; document.getElementById('lT').firstChild.textContent=f[0]; document.getElementById('lD').firstChild.textContent=f[1]; document.getElementById('fT').placeholder=f[2]; document.getElementById('fY').closest('label').hidden=!!FORM[fC.value]; };
-let editing=null;
-function openForm(e){
-  editing=e||null;
-  document.getElementById('fmTitle').textContent=e?'予定を直す':'予定を追加';
-  document.getElementById('fT').value=e?e.title:'';
-  document.getElementById('fD').value=e?e.date:`${Y}-${pad(M)}-${pad(D)}`;
-  fC.value=e?e.cat:'work'; fC.onchange();
-  document.getElementById('fY').checked=e?!!e.yearly:false;
-  document.getElementById('fM').value=e?(e.memo||''):'';
+/* ---------- 入れる・直す ---------- */
+const dlg=$('dlg'), fDel=$('fDel');
+const TXT = {
+  bday:['誕生日を入れる','だれの','例: 母','生まれた日',-60],
+  memorial:['命日を入れる','だれの','例: 祖父','亡くなった日',-3],
+  anniv:['記念日を入れる','なんの記念日','例: 結婚記念日','その日',-20],
+  other:['予定を入れる','なにを','例: 確定申告のしめきり','いつ',0],
+};
+function fillYMD(ySel,mSel,dSel,y,m,d){
+  ySel.innerHTML=''; for(let v=TY+5; v>=1900; v--) ySel.add(new Option(`${v}（${wareki(v)}）年`, v));
+  mSel.innerHTML=''; for(let v=1; v<=12; v++) mSel.add(new Option(v+'月', v));
+  const days=()=>{ const keep=+dSel.value||d; dSel.innerHTML=''; const n=dim(+ySel.value,+mSel.value); for(let v=1; v<=n; v++) dSel.add(new Option(v+'日', v)); dSel.value=Math.min(keep,n); };
+  ySel.value=y; mSel.value=m; dSel.value=''; days(); dSel.value=Math.min(d,dim(y,m));
+  ySel.onchange=days; mSel.onchange=days;
+}
+let editing=null, cat='other';
+function showStep(n){ $('step1').hidden=n!==1; $('step2').hidden=n!==2; $('step2').style.display = n===2?'flex':'none'; }
+function setCat(c, e){
+  cat=c; const t=TXT[GROUP(c)];
+  $('fmTitle').textContent = e ? t[0].replace('入れる','直す') : t[0];
+  $('lTt').textContent=t[1]; $('fT').placeholder=t[2]; $('lDt').textContent=t[3];
+  $('lY').hidden = FIXED.includes(c);
+  const [y,m,d] = e ? e.date.split('-').map(Number) : [TY+t[4], M, D];
+  fillYMD($('fYy'),$('fMm'),$('fDd'),y,m,d);
+  $('fT').value = e ? e.title : '';
+  $('fY').checked = e ? !!e.yearly : false;
+  $('fM').value = e ? (e.memo||'') : ''; $('lM').hidden = !(e && e.memo); $('memoB').hidden = !$('lM').hidden;
   fDel.hidden=!e; fDel.dataset.armed=''; fDel.textContent='消す';
-  dlg.showModal();
+  showStep(2);
 }
-document.getElementById('addB').onclick=()=>openForm(null);
-document.getElementById('fCancel').onclick=()=>dlg.close();
-document.getElementById('fm').addEventListener('submit',ev=>{
+function openAdd(){ editing=null; showStep(1); dlg.showModal(); }
+function openEdit(e){ if(!e) return; editing=e; setCat(e.cat, e); dlg.showModal(); }
+document.querySelectorAll('.pick').forEach(b=>b.onclick=()=>setCat(b.dataset.c, null));
+$('memoB').onclick=()=>{ $('lM').hidden=false; $('memoB').hidden=true; $('fM').focus(); };
+$('addB').onclick=openAdd; $('introAdd').onclick=openAdd;
+$('fCancel').onclick=()=>dlg.close(); $('fCancel1').onclick=()=>dlg.close();
+$('introClear').onclick=()=>{ events=[]; sample=false; D=TD; render(); };
+$('fm').addEventListener('submit',ev=>{
   ev.preventDefault();
-  const v={title:document.getElementById('fT').value.trim(), date:document.getElementById('fD').value, cat:fC.value, yearly:document.getElementById('fY').checked, memo:document.getElementById('fM').value.trim()};
-  if(!v.title||!v.date) return;
-  if (['bday','memorial','anniv'].includes(v.cat)) v.yearly=true;
-  if(editing) Object.assign(editing,v); else events.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),...v});
-  save(); const [y,m,d]=v.date.split('-').map(Number); Y=y; M=m; D=d; dlg.close(); render();
+  const title=$('fT').value.trim(); if(!title) return;
+  const date=`${$('fYy').value}-${pad($('fMm').value)}-${pad($('fDd').value)}`;
+  const v={title, date, cat, yearly: FIXED.includes(cat) ? true : $('fY').checked, memo:$('fM').value.trim()};
+  if (sample){ events=[]; sample=false; }
+  if (editing) Object.assign(editing,v); else events.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),...v});
+  save(); const [y,m,d]=date.split('-').map(Number);
+  // 誕生日・命日・記念日は、今年のその日を開く
+  Y = FIXED.includes(cat) ? TY : y; M=m; D=d;
+  dlg.close(); render();
 });
 fDel.onclick=()=>{
   if(!editing) return;
@@ -478,29 +566,29 @@ fDel.onclick=()=>{
   events=events.filter(e=>e!==editing); save(); dlg.close(); render();
 };
 
-/* ---------- 控え ---------- */
-const menu=document.getElementById('menu');
-document.getElementById('menuB').onclick=()=>{ document.getElementById('note').hidden=true; menu.showModal(); };
-document.getElementById('mClose').onclick=()=>menu.close();
-const bdIn=document.getElementById('bd'); bdIn.value=settings.birthday||'';
-bdIn.onchange=()=>{ settings.birthday=bdIn.value||''; saveSettings(); render(); };
-document.getElementById('exp').onclick=async()=>{
-  const txt=JSON.stringify(events), box=document.getElementById('bk'); box.value=txt;
+/* ---------- 設定 ---------- */
+const menu=$('menu');
+$('menuB').onclick=()=>{ $('note').hidden=true; const [by,bm,bd]=(settings.birthday||`${TY-40}-01-01`).split('-').map(Number); fillYMD($('bdY'),$('bdM'),$('bdD'),by,bm,bd); if(!settings.birthday){ $('bdY').insertBefore(new Option('入れない',''),$('bdY').firstChild); $('bdY').value=''; } menu.showModal(); };
+$('mClose').onclick=()=>{ settings.birthday = $('bdY').value ? `${$('bdY').value}-${pad($('bdM').value)}-${pad($('bdD').value)}` : ''; saveSettings(); menu.close(); render(); };
+$('exp').onclick=async()=>{
+  const txt=JSON.stringify(sample?[]:events), box=$('bk'); box.value=txt;
   try{ await navigator.clipboard.writeText(txt); note('控えをコピーしました。メモ帳などに貼って残してください。'); }
   catch(e){ box.select(); note('上の欄の文字をすべて選んでコピーし、メモ帳などに残してください。'); }
 };
-document.getElementById('rst').onclick=()=>{
-  const b=document.getElementById('rst');
+$('rst').onclick=()=>{
+  const b=$('rst');
   if(b.dataset.armed!=='1'){ b.dataset.armed='1'; b.textContent='もう一度押すと今の予定と置きかわります'; return; }
   b.dataset.armed=''; b.textContent='控えから戻す';
   try{
-    const data=JSON.parse(document.getElementById('bk').value); if(!Array.isArray(data)) throw 0;
-    events=data.filter(e=>e&&e.title&&/^\d{4}-\d{2}-\d{2}$/.test(e.date)).map(e=>({id:e.id||Date.now().toString(36)+Math.random().toString(36).slice(2,5), title:String(e.title).slice(0,40), date:e.date, cat:CATS[e.cat]?e.cat:'other', yearly:!!e.yearly, memo:String(e.memo||'').slice(0,200)}));
-    save(); menu.close(); render();
+    const data=JSON.parse($('bk').value); if(!Array.isArray(data)) throw 0;
+    events=data.filter(e=>e&&e.title&&/^\d{4}-\d{2}-\d{2}$/.test(e.date)).map(e=>({id:e.id||Date.now().toString(36)+Math.random().toString(36).slice(2,5), title:String(e.title).slice(0,40), date:e.date, cat:HEX[e.cat]?e.cat:'other', yearly:!!e.yearly, memo:String(e.memo||'').slice(0,200)}));
+    sample=false; save(); menu.close(); render();
   }catch(e){ note('控えの文字を読めませんでした。コピーした文字をそのまま貼ってください。'); }
 };
 
-addEventListener('resize',drawSpiral);
+// 初めてのときだけ「なぞると月が変わります」
+try{ if(!localStorage.getItem(HKEY)) $('hint').hidden=false; }catch(_){}
+addEventListener('resize',()=>{ drawSpiral(); renderCal(); });
 aimYaw(); yaw=yawTarget;
 document.fonts.ready.then(drawSpiral);
 render();

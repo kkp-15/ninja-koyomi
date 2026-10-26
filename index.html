@@ -21,6 +21,7 @@
 </script>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-2LM85GJN0L"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-2LM85GJN0L');</script>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1298304917726270" crossorigin="anonymous"></script>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&family=Zen+Old+Mincho:wght@600&display=swap" rel="stylesheet">
 <style>
 /* らせん（年をまたいで見渡す）の輪の中に、前年・今年・来年の同じ月の紙を重ねる。下に選んだ日の3年分 */
@@ -153,6 +154,10 @@ textarea{min-height:60px;resize:vertical}
 .pick span{font-size:13px;color:var(--sub)}
 .small{font-size:12px;color:var(--sub);line-height:1.6;margin:0}
 .linkbtn{border:0;background:none;color:var(--sub);text-decoration:underline;padding:0;min-height:32px;cursor:pointer;align-self:flex-start;font-size:13px}
+.kkp-ad{text-align:center;margin:1.4rem auto 0;max-width:680px;min-height:288px;padding-top:6px}
+.kkp-ad-label{font-size:11px;color:#999;letter-spacing:.08em;margin:0 0 6px;line-height:1}
+.kkp-ad ins.adsbygoogle{display:block;width:300px;height:250px;margin:0 auto}
+@media(min-width:768px){.kkp-ad{min-height:318px}.kkp-ad ins.adsbygoogle{width:336px;height:280px}}
 </style>
 </head>
 <body>
@@ -184,6 +189,14 @@ textarea{min-height:60px;resize:vertical}
   <a href="/nenki/" style="color:var(--ink)">法事・年忌の計算（命日から四十九日・一周忌・三回忌の日付）</a><br>
   <a href="/yakudoshi/" style="color:var(--ink)">厄年と長寿祝いの計算（生まれ年から本厄・前厄・後厄と還暦の年）</a>
 </nav>
+<div class="kkp-ad">
+  <div class="kkp-ad-label">広告</div>
+  <ins class="adsbygoogle" style="display:block"
+       data-ad-client="ca-pub-1298304917726270"
+       data-ad-slot="2937937957"
+       data-ad-format="rectangle"
+       data-full-width-responsive="false"></ins>
+</div>
 <div id="bottom"><div class="in">
   <button class="btn" id="yPrev"></button>
   <button class="btn" id="todayB">今日</button>
@@ -595,5 +608,10 @@ document.fonts.ready.then(drawSpiral);
 render();
 </script>
 
+<script>
+(function(){ var els=document.querySelectorAll('.kkp-ad ins.adsbygoogle'); if(!('IntersectionObserver' in window)){ els.forEach(function(){ (window.adsbygoogle=window.adsbygoogle||[]).push({}); }); return; }
+  var io=new IntersectionObserver(function(es){ es.forEach(function(e){ if(e.isIntersecting){ io.unobserve(e.target); try{ (window.adsbygoogle=window.adsbygoogle||[]).push({}); }catch(_){} } }); },{rootMargin:'200px'});
+  els.forEach(function(el){ io.observe(el); }); })();
+</script>
 </body>
 </html>

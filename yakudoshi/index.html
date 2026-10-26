@@ -21,6 +21,7 @@
 </script>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-2LM85GJN0L"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-2LM85GJN0L');</script>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1298304917726270" crossorigin="anonymous"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&family=Zen+Old+Mincho:wght@600&display=swap" rel="stylesheet">
@@ -73,6 +74,10 @@ h2{font-family:var(--f-num);font-size:20px;margin:28px 0 8px}
 .note li{margin-bottom:6px}
 details{margin-top:10px;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:10px 14px}
 summary{cursor:pointer;font-weight:700;min-height:32px}
+.kkp-ad{text-align:center;margin:1.4rem auto 0;max-width:680px;min-height:288px;padding-top:6px}
+.kkp-ad-label{font-size:11px;color:#999;letter-spacing:.08em;margin:0 0 6px;line-height:1}
+.kkp-ad ins.adsbygoogle{display:block;width:300px;height:250px;margin:0 auto}
+@media(min-width:768px){.kkp-ad{min-height:318px}.kkp-ad ins.adsbygoogle{width:336px;height:280px}}
 </style>
 </head>
 <body>
@@ -102,6 +107,7 @@ summary{cursor:pointer;font-weight:700;min-height:32px}
 
   <h2 id="hC">長寿祝いの一覧</h2>
   <table class="tbl"><tbody id="tC"></tbody></table>
+  <p id="gift" class="note" style="padding:0;margin:10px 0 0" hidden></p>
   <a class="go" href="/">家族の誕生日をらせんカレンダーに入れる</a>
 
   <h2>厄年早見表（数え年）</h2>
@@ -126,6 +132,14 @@ summary{cursor:pointer;font-weight:700;min-height:32px}
       <li><a href="https://www.kawasakidaishi.com/yakuyoke/yakudoshi/" target="_blank" rel="noopener">川崎大師「厄年」（満年齢での数え方の例）</a></li>
     </ul>
   </details>
+<div class="kkp-ad">
+  <div class="kkp-ad-label">広告</div>
+  <ins class="adsbygoogle" style="display:block"
+       data-ad-client="ca-pub-1298304917726270"
+       data-ad-slot="2937937957"
+       data-ad-format="rectangle"
+       data-full-width-responsive="false"></ins>
+</div>
 </main>
 
 <!-- WEBNINJA_UNIFIED_FOOTER -->
@@ -190,6 +204,8 @@ function render(){
   $('tY').innerHTML = rows.map(r=>`<tr class="${r.y<TY?'past':''}${r.y===TY?' now':''}"><th>${r.big?'大厄 ':''}${r.k}<span class="s">数え${r.kz}歳</span></th><td class="y">${yr(r.y)}</td></tr>`).join('');
 
   // 長寿祝いの一覧
+  { const nx=CHOJU.find(([n,a])=>by+a>=TY); const g=$('gift');
+    if (nx){ const kw=encodeURIComponent(nx[0]+'祝い プレゼント'); g.hidden=false; g.innerHTML=`${nx[0]}のお祝いの品を探すなら <a href="https://www.amazon.co.jp/s?k=${kw}&tag=kkp15-22" target="_blank" rel="noopener sponsored">Amazonで「${nx[0]}祝い」を見る</a>（PR）`; } else g.hidden=true; }
   $('tC').innerHTML = CHOJU.map(([n,a])=>{ const y=by+a, yk=by+KZ[n]-1; return `<tr class="${y<TY?'past':''}${y===TY?' now gold':''}"><th>${n}<span class="s">満${a}歳</span></th><td class="y">${yr(y)}の誕生日<span class="s">${yk===y?'数え年で祝っても同じ年':`数え年（${KZ[n]}歳）で祝うなら ${yk}年`}</span></td></tr>`; }).join('');
 }
 
@@ -208,6 +224,11 @@ $('by').value = TY-40;
 $('by').onchange=render;
 document.querySelectorAll('.sex button').forEach(b=>b.onclick=()=>{ sex=b.dataset.s; document.querySelectorAll('.sex button').forEach(x=>x.setAttribute('aria-pressed', String(x===b))); render(); });
 render(); renderQuick();
+</script>
+<script>
+(function(){ var els=document.querySelectorAll('.kkp-ad ins.adsbygoogle'); if(!('IntersectionObserver' in window)){ els.forEach(function(){ (window.adsbygoogle=window.adsbygoogle||[]).push({}); }); return; }
+  var io=new IntersectionObserver(function(es){ es.forEach(function(e){ if(e.isIntersecting){ io.unobserve(e.target); try{ (window.adsbygoogle=window.adsbygoogle||[]).push({}); }catch(_){} } }); },{rootMargin:'200px'});
+  els.forEach(function(el){ io.observe(el); }); })();
 </script>
 </body>
 </html>

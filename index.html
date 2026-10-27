@@ -74,8 +74,11 @@ h1{font-size:15px;margin:0 auto 0 0;letter-spacing:.04em;white-space:nowrap}
 .sheet.ghost .cell.sel .n{opacity:1;color:var(--ink);font-weight:700}
 .sheet.ghost .cell.sel .w{visibility:visible;font-weight:700;color:var(--ink)}
 .sheet.ghost .cell.sel{background:color-mix(in srgb,var(--accent) 22%,transparent);box-shadow:inset 0 0 0 2px var(--accent)}
-.sheet .yl{position:absolute;right:6px;top:-14px;font-family:var(--f-num);font-size:12px;color:var(--ink);background:var(--bg);padding:0 7px;border-radius:6px;border:1px solid var(--line);white-space:nowrap}
-.sheet.ghost .yl{color:var(--sub)}
+.sheet .yl{position:absolute;right:6px;top:-16px;font-size:13px;font-weight:700;color:#fff;background:var(--ink);padding:1px 9px;border-radius:7px;white-space:nowrap}
+.sheet .yl b{font-family:var(--f-num)}
+.sheet.ghost .yl{color:var(--ink);background:var(--bg);border:1px dashed var(--sub);font-weight:600}
+.sheet.ghost .yl{visibility:visible}
+.sheet.below .yl{top:auto;bottom:-18px;right:auto;left:6px}
 .sheet .order{position:absolute;left:8px;top:-13px;font-size:11px;color:var(--sub);background:var(--bg);padding:0 6px;border-radius:6px}
 .wk{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
 .su{color:#c9475f!important}.sa{color:#4473c4!important}
@@ -98,6 +101,14 @@ h1{font-size:15px;margin:0 auto 0 0;letter-spacing:.04em;white-space:nowrap}
 .legend{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;font-size:12px;color:var(--sub);padding-top:8px}
 .legend i{display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--sub);margin-right:4px;vertical-align:-1px}
 .legend i.g{background:transparent;border:1px dashed var(--sub)}
+.legend{flex-direction:column;align-items:stretch;gap:6px;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-top:10px;font-size:13px;color:var(--ink)}
+.legend .lr{display:flex;flex-wrap:wrap;gap:4px 14px;align-items:center}
+.legend .lh{font-weight:700;font-size:12px;color:var(--sub);min-width:4.5em}
+.legend i.sel{width:14px;height:14px;border-radius:4px;background:color-mix(in srgb,var(--accent) 14%,transparent);box-shadow:inset 0 0 0 2px var(--accent)}
+.legend i.tod{width:14px;height:14px;border-radius:50%;background:var(--ink)}
+.legend i.dot{width:9px;height:9px;border-radius:50%}
+.legend i.cur{width:14px;height:10px;background:var(--paper);border:1px solid var(--ink)}
+.legend i.g{width:14px;height:10px}
 
 /* 見本の案内 */
 #intro{margin-top:12px;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:12px}
@@ -109,6 +120,7 @@ h1{font-size:15px;margin:0 auto 0 0;letter-spacing:.04em;white-space:nowrap}
 /* 選んだ日の3年分 */
 #detail{border-top:1px solid var(--line);padding-top:10px;margin-top:12px}
 #dTitle{font-family:var(--f-num);font-size:22px;margin:0 0 4px}
+#dTitle small{font-family:var(--f-body);font-size:13px;color:var(--sub);margin-left:8px}
 .yr{display:grid;grid-template-columns:72px 1fr;gap:8px;padding:8px 0;border-bottom:1px dashed var(--line);align-items:start}
 .yr .y{font-size:13px;color:var(--sub);line-height:1.4}
 .yr.cur .y{color:var(--ink);font-weight:700}
@@ -177,7 +189,7 @@ textarea{min-height:60px;resize:vertical}
   <div id="cal"></div>
   <div id="hint" hidden>← なぞると月が変わります →</div>
 </div>
-<div class="legend"><span><i></i>今年の紙</span><span><i class="g"></i>前年（下）・来年（上）の同じ日</span></div>
+<div class="legend" id="legend"></div>
 <div id="intro" hidden>
   <p id="introT"></p>
   <div class="acts"><button class="btn main" type="button" id="introAdd">家族の日を入れる</button><button class="btn" type="button" id="introClear">見本を消す</button></div>
@@ -275,6 +287,7 @@ let settings = {};
 try { settings = JSON.parse(localStorage.getItem(SKEY)) || {}; } catch(e) { settings = {}; }
 function saveSettings(){ try{ localStorage.setItem(SKEY, JSON.stringify(settings)); }catch(e){} }
 function ageAt(birth, y, m, d){ if(!birth) return null; const [by,bm,bd]=birth.split('-').map(Number); let a=y-by; if (m<bm || (m===bm && d<bd)) a--; return a; }
+function relY(y){ const r={'-1':'（去年）','0':'（今年）','1':'（来年）'}[y-TY]; return r||''; }
 function ageLabel(y){ const a=ageAt(settings.birthday, y, M, Math.min(D,dim(y,M))); return a===null||a<0 ? '' : `・${a}歳`; }
 
 let events = [];
@@ -459,7 +472,7 @@ function sheetHTML(y,k){
       ? `<button type="button" class="cell${cls}" data-d="${d}" aria-label="${M}月${d}日（${WD[w]}）${evs.length?'・予定'+evs.length+'件':''}">${mark}<span class="n ${wc}">${d}</span><span class="w ${wc}">${WD[w]}</span>${dots}</button>`
       : `<div class="cell${cls}">${mark}<span class="n ${wc}">${d}</span><span class="w ${wc}">${WD[w]}</span></div>`;
   }
-  return `<div class="sheet${k?' ghost':''}" style="--k:${k};opacity:${k?.9:1}"><span class="order">1日から7日ずつ</span><span class="yl">${y}年${ageLabel(y)}</span><div class="wk">${cells}</div></div>`;
+  return `<div class="sheet${k?' ghost':''}${k<0?' below':''}" style="--k:${k};opacity:${k?.9:1}"><span class="yl"><b>${y}</b>年${relY(y)}${ageLabel(y)}</span><div class="wk">${cells}</div></div>`;
 }
 function renderCal(){
   cal.innerHTML = `<div id="stack">${sheetHTML(Y-1,-1)}${sheetHTML(Y,0)}${sheetHTML(Y+1,1)}</div>`;
@@ -482,7 +495,7 @@ cal.addEventListener('pointerup',e=>{ if(sx!==null&&Math.abs(e.clientX-sx)>50) m
 /* ---------- 選んだ日の3年分 ---------- */
 const md = x=>`${x.getMonth()+1}月${x.getDate()}日（${WD[x.getDay()]}）`;
 function renderDetail(){
-  $('dTitle').textContent=`${M}月${D}日`;
+  $('dTitle').innerHTML=`${M}月${D}日<small>選んだ日の去年・今年・来年</small>`;
   $('rows').innerHTML=[Y+1,Y,Y-1].map(y=>{
     const dd=Math.min(D,dim(y,M)), evs=eventsOn(y,M,dd), wd=WD[new Date(y,M-1,dd).getDay()];
     const list=evs.length?evs.map(o=>{
@@ -492,11 +505,17 @@ function renderDetail(){
       return `<div class="ev${ed?' edit':''}" ${ed?`data-id="${o.e.id}" role="button" tabindex="0"`:''}><i style="background:${HEX[o.e.cat]||HEX.other}"></i><span class="t">${esc(o.label)}${sub?`<small>${sub}</small>`:''}</span>${ed?'<em>直す</em>':''}</div>`;
     }).join(''):'<div class="empty">予定なし</div>';
     const ag=ageAt(settings.birthday,y,M,dd); const agt = ag===null||ag<0 ? '' : `<br>${ag}歳`;
-    return `<div class="yr ${y===Y?'cur':'other'}"><div class="y">${y}年<br>（${wd}）${agt}</div><div>${list}</div></div>`;
+    return `<div class="yr ${y===Y?'cur':'other'}"><div class="y">${y}年${relY(y)?'<br>'+relY(y).slice(1,-1):''}<br>（${wd}）${agt}</div><div>${list}</div></div>`;
   }).join('');
   document.querySelectorAll('#rows .ev.edit').forEach(el=>{ const go=()=>openEdit(events.find(e=>e.id===el.dataset.id)); el.onclick=go; el.onkeydown=e=>{ if(e.key==='Enter') go(); }; });
 }
 
+function renderLegend(){
+  $('legend').innerHTML =
+    `<div class="lr"><span class="lh">紙</span><span><i class="cur"></i>まん中が${Y}年</span><span><i class="g"></i>上が${Y+1}年・下が${Y-1}年（同じ日だけ数字）</span></div>`+
+    `<div class="lr"><span class="lh">しるし</span><span><i class="sel"></i>選んだ日</span><span><i class="tod"></i>今日</span></div>`+
+    `<div class="lr"><span class="lh">色</span>${Object.entries(GROUPS).map(([k,n])=>`<span><i class="dot" style="background:${HEX[k]}"></i>${n}</span>`).join('')}</div>`;
+}
 function renderIntro(){
   const box=$('intro');
   if (sample){ box.hidden=false; $('introT').textContent='見本です。命日を1回入れると、一周忌・三回忌が毎年ここに並びます。誕生日を入れると年齢と還暦などのお祝いの年が出ます。'; $('introClear').hidden=false; }
@@ -510,7 +529,7 @@ function render(){
   D=Math.min(D,dim(Y,M));
   $('ym').innerHTML=`${M}月<small>${Y}年</small>`;
   $('yPrev').textContent=`‹ ${Y-1}年`; $('yNext').textContent=`${Y+1}年 ›`;
-  renderCal(); renderDetail(); renderIntro(); renderCats(); spin(); drawSpiral();
+  renderCal(); renderDetail(); renderLegend(); renderIntro(); renderCats(); spin(); drawSpiral();
 }
 function moveMonth(n){ M+=n; if(M<1){M=12;Y--;} if(M>12){M=1;Y++;} render(); }
 $('prevM').onclick=()=>moveMonth(-1);

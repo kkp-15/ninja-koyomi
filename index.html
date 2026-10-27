@@ -53,7 +53,7 @@ h1{font-size:15px;margin:0 auto 0 0;letter-spacing:.04em;white-space:nowrap}
 #catsN{font-size:12px;color:var(--sub);margin-left:auto}
 
 /* らせんの盤面 */
-#board{position:relative;margin:4px auto 0;width:100%;max-width:460px;aspect-ratio:1/1.26;border-radius:28px;
+#board{position:relative;margin:4px auto 0;width:100%;max-width:460px;aspect-ratio:1/1.62;border-radius:28px;
   background:radial-gradient(70% 70% at 50% 50%,#fffaf0 0%,#f7eedb 62%,#efe2c7 100%)}
 #spiral{position:absolute;inset:0}
 #cv{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
@@ -87,7 +87,7 @@ h1{font-size:15px;margin:0 auto 0 0;letter-spacing:.04em;white-space:nowrap}
 .sheet.ghost .yl{color:var(--ink);background:var(--bg);border:1px dashed var(--sub);font-weight:600}
 .sheet.ghost .yl{visibility:visible}
 .sheet.below .yl{color:#36508a;border-color:#4473c4}
-.sheet.below .yl{top:auto;bottom:-18px;right:auto;left:6px}
+.sheet.below .yl{display:none}
 .sheet .order{position:absolute;left:8px;top:-13px;font-size:11px;color:var(--sub);background:var(--bg);padding:0 6px;border-radius:6px}
 .wk{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
 .su{color:#c9475f!important}.sa{color:#4473c4!important}
@@ -349,7 +349,7 @@ function prevWeekend(y,m,d){ const out=[]; for(let i=1;i<=14&&out.length<2;i++){
 
 /* ---------- らせん ---------- */
 const cv = $('cv'), ctx = cv.getContext('2d');
-const R = 1, H = 0.46, SPAN = 2;
+const R = 1, H = 0.86, SPAN = 2;
 let yaw = 0, yawTarget = 0, pitch = 0.78, hits = [], dayHits = [];
 const yearLen = y=>(Date.UTC(y+1,0,1)-Date.UTC(y,0,1))/864e5;
 const frac = (y,m,d)=>(Date.UTC(y,m-1,d)-Date.UTC(y,0,1))/864e5/yearLen(y);

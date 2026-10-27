@@ -71,13 +71,14 @@ h1{font-size:15px;margin:0 auto 0 0;letter-spacing:.04em;white-space:nowrap}
 .sheet{position:relative;transform:translateZ(calc(var(--k,0) * var(--gap,68px)));background:color-mix(in srgb,var(--paper) 74%,transparent);border:1px solid var(--line);border-radius:12px;padding:8px 6px 8px;
   box-shadow:0 22px 34px -20px rgba(58,46,34,.42),0 2px 6px rgba(58,46,34,.08);transform-style:preserve-3d}
 .sheet.ghost{position:absolute;inset:0;pointer-events:none;background:color-mix(in srgb,var(--paper) 14%,transparent);box-shadow:none;border:1px dashed rgba(138,111,74,.45)}
-.sheet.ghost .n{opacity:.22}
-.sheet.ghost.below .n{opacity:.5}
+.sheet.ghost .n{opacity:calc(var(--gv,.4) * .75)}
+.sheet.ghost.below .n{opacity:var(--gv,.5)}
+.sheet.ghost .w{visibility:visible!important;opacity:calc(var(--gv,.4) - .25)}
 .sheet.ghost.below{background:color-mix(in srgb,#4473c4 7%,transparent);border-color:rgba(68,115,196,.5)}
 .sheet.ghost.below .n{color:#4c6390}
 .sheet.ghost:not(.below){background:color-mix(in srgb,#e8742c 5%,transparent)}
 .sheet.ghost:not(.below) .n{color:#9a6a3c}
-.sheet.ghost .w,.sheet.ghost .dots,.sheet.ghost .order{visibility:hidden}
+.sheet.ghost .dots,.sheet.ghost .order{visibility:hidden}
 .sheet.ghost .cell.has .n{opacity:.8;font-weight:700}
 .sheet.ghost .cell.sel .n{opacity:1;color:var(--ink);font-weight:700}
 .sheet.ghost .cell.sel .w{visibility:visible;font-weight:700;color:var(--ink)}
@@ -194,7 +195,7 @@ textarea{min-height:60px;resize:vertical}
 <div id="cats"></div>
 <div id="board">
   <div id="spiral"><canvas id="cv" aria-label="年ごとに1周するらせん。横になぞると月が変わり、押すとその日を選びます"></canvas></div>
-  <div id="views" role="group" aria-label="見る角度"><button type="button" data-p="0.78">ななめ</button><button type="button" data-p="1.2">真上</button></div>
+  <div id="views" role="group" aria-label="見る角度"><button type="button" data-p="0.45">横から</button><button type="button" data-p="0.78">ななめ</button><button type="button" data-p="1.2">真上</button></div>
   <div id="cal"></div>
   <button type="button" class="jump" id="jUp"></button>
   <button type="button" class="jump" id="jDn"></button>
@@ -350,7 +351,7 @@ function prevWeekend(y,m,d){ const out=[]; for(let i=1;i<=14&&out.length<2;i++){
 /* ---------- らせん ---------- */
 const cv = $('cv'), ctx = cv.getContext('2d');
 const R = 1, H = 0.86, SPAN = 2;
-let yaw = 0, yawTarget = 0, pitch = 0.78, hits = [], dayHits = [];
+let yaw = 0, yawTarget = 0, pitch = 0.45, hits = [], dayHits = [];
 const yearLen = y=>(Date.UTC(y+1,0,1)-Date.UTC(y,0,1))/864e5;
 const frac = (y,m,d)=>(Date.UTC(y,m-1,d)-Date.UTC(y,0,1))/864e5/yearLen(y);
 const ang = f=>-f*Math.PI*2 - Math.PI/2;
@@ -389,13 +390,21 @@ function drawSpiral(){
       ctx.strokeStyle=`rgba(58,46,34,${0.05+0.07*near})`; ctx.lineWidth=5+3*near; ctx.stroke();
       ctx.beginPath(); ctx.moveTo(s.a.sx,s.a.sy); ctx.lineTo(s.b.sx,s.b.sy);
       ctx.strokeStyle=`rgba(${Math.round(120-60*near)},${Math.round(92-46*near)},${Math.round(60-26*near)},${0.55+0.45*near})`; ctx.lineWidth=2+1.8*near; ctx.stroke();
-    } else { ctx.strokeStyle=`rgba(138,111,74,${alphaOf(s.y)*(0.5+0.5*near)})`; ctx.lineWidth=1.2+1.2*near; ctx.stroke(); }
+    } else if (s.y===Y-1){ ctx.strokeStyle=`rgba(68,115,196,${0.45+0.4*near})`; ctx.lineWidth=1.6+1.4*near; ctx.stroke(); }
+    else if (s.y===Y+1){ ctx.strokeStyle=`rgba(232,116,44,${0.4+0.35*near})`; ctx.lineWidth=1.6+1.4*near; ctx.stroke(); }
+    else { ctx.strokeStyle=`rgba(138,111,74,${alphaOf(s.y)*(0.5+0.5*near)})`; ctx.lineWidth=1.2+1.2*near; ctx.stroke(); }
   }
   // 見ている月の弧をオレンジで太く
   ctx.beginPath();
   for (let d=1; d<=dim(Y,M); d++){ const q=proj(P(Y,frac(Y,M,d)),W,Hh); d===1?ctx.moveTo(q.sx,q.sy):ctx.lineTo(q.sx,q.sy); }
   { const q=proj(P(Y,frac(Y,M,dim(Y,M))+1/yearLen(Y)),W,Hh); ctx.lineTo(q.sx,q.sy); }
   ctx.strokeStyle='rgba(232,116,44,.85)'; ctx.lineWidth=5; ctx.stroke();
+  // 去年・来年の同じ月の弧（紙と同じ色）
+  for (const [yy,col] of [[Y-1,'rgba(68,115,196,.75)'],[Y+1,'rgba(232,116,44,.5)']]){
+    ctx.beginPath();
+    for (let d=1; d<=dim(yy,M); d++){ const q=proj(P(yy,frac(yy,M,d)),W,Hh); d===1?ctx.moveTo(q.sx,q.sy):ctx.lineTo(q.sx,q.sy); }
+    ctx.strokeStyle=col; ctx.lineWidth=4; ctx.stroke();
+  }
   // 月の名前は手前の半周だけ（紙の後ろに隠れる文字を出さない）
   for (let m=1;m<=12;m++){
     const q=proj(P(Y,frac(Y,m,1)+0.04,R*1.17),W,Hh);
@@ -422,7 +431,7 @@ function drawSpiral(){
     ctx.fillStyle=g; ctx.beginPath(); ctx.arc(q.sx,q.sy,16*q.k,0,Math.PI*2); ctx.fill();
     ctx.beginPath(); ctx.arc(q.sx,q.sy,5*q.k,0,Math.PI*2); ctx.fillStyle='#fff'; ctx.fill(); ctx.strokeStyle='#e8742c'; ctx.lineWidth=2.5; ctx.stroke();
     const a=proj(P(Y-1,frac(Y-1,M,Math.min(D,dim(Y-1,M)))),W,Hh), b=proj(P(Y+1,frac(Y+1,M,Math.min(D,dim(Y+1,M)))),W,Hh);
-    ctx.setLineDash([2,4]); ctx.beginPath(); ctx.moveTo(a.sx,a.sy); ctx.lineTo(b.sx,b.sy); ctx.strokeStyle='rgba(232,116,44,.55)'; ctx.lineWidth=1.3; ctx.stroke(); ctx.setLineDash([]);
+    ctx.setLineDash([3,4]); ctx.beginPath(); ctx.moveTo(a.sx,a.sy); ctx.lineTo(b.sx,b.sy); ctx.strokeStyle='rgba(232,116,44,.8)'; ctx.lineWidth=2; ctx.stroke(); ctx.setLineDash([]);
   }
   dayHits=[];
   for (let y=Y-1;y<=Y+1;y++) for (let n=0;n<yearLen(y);n++){
@@ -440,7 +449,9 @@ function spin(){ aimYaw(); if(!raf) raf=requestAnimationFrame(animate); }
 
 // らせんの操作：横に回す（月）・縦に傾ける（角度）・押して選ぶ
 let drag=null, moved=false;
-function setTilt(){ const st=$('stack'); if(st){ st.style.setProperty('--tilt',tiltDeg()+'deg'); st.style.setProperty('--gap',GAP()+'px'); }
+function setTilt(){ const st=$('stack'); if(st){ st.style.setProperty('--tilt',tiltDeg()+'deg'); st.style.setProperty('--gap',GAP()+'px');
+    // 横から見るほど紙どうしが離れて重ならない→前後の紙もはっきり出す
+    st.style.setProperty('--gv', Math.min(.95,Math.max(.25,(1.3-pitch)/0.85)).toFixed(2)); }
   document.querySelectorAll('#views button').forEach(b=>b.setAttribute('aria-pressed', String(Math.abs(+b.dataset.p-pitch)<0.2))); }
 cv.addEventListener('pointerdown',e=>{ try{ cv.setPointerCapture(e.pointerId); }catch(_){} drag={x:e.clientX,y:e.clientY,yaw,pitch}; moved=false; });
 cv.addEventListener('pointermove',e=>{
@@ -524,6 +535,7 @@ function renderDetail(){
 function renderLegend(){
   $('legend').innerHTML =
     `<div class="lr"><span class="lh">紙</span><span><i class="cur"></i>まん中が${Y}年</span><span><i class="g"></i>上が${Y+1}年（橙）・下が${Y-1}年（青）。▲▼でその年へ</span></div>`+
+    `<div class="lr"><span class="lh">らせん</span><span>1周が1年。紙と同じ色の輪がその年で、太い弧が見ている月</span></div>`+
     `<div class="lr"><span class="lh">しるし</span><span><i class="sel"></i>選んだ日</span><span><i class="tod"></i>今日</span></div>`+
     `<div class="lr"><span class="lh">色</span>${Object.entries(GROUPS).map(([k,n])=>`<span><i class="dot" style="background:${HEX[k]}"></i>${n}</span>`).join('')}</div>`;
 }

@@ -57,6 +57,7 @@ h1{font-size:15px;margin:0 auto 0 0;letter-spacing:.04em;white-space:nowrap}
   background:radial-gradient(70% 70% at 50% 50%,#fffaf0 0%,#f7eedb 62%,#efe2c7 100%)}
 #spiral{position:absolute;inset:0}
 #cv{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+#cv2{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:3}
 #views{position:absolute;right:10px;top:10px;z-index:3;display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--paper)}
 #views button{border:0;background:transparent;min-height:36px;min-width:52px;font-size:12px;cursor:pointer}
 #views button[aria-pressed=true]{background:var(--ink);color:#fff}
@@ -169,6 +170,12 @@ label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--sub)
 input[type=text],select,textarea{border:1px solid var(--line);background:var(--paper);border-radius:10px;padding:10px;min-height:44px;font-size:16px}
 textarea{min-height:60px;resize:vertical}
 .ymd{display:grid;grid-template-columns:2fr 1fr 1fr;gap:6px}
+.quick{margin-bottom:6px}
+.quick input{width:100%;font-size:17px;padding:10px;letter-spacing:.06em}
+.qok{display:block;min-height:1.3em;font-size:13px;color:var(--sub);margin-top:3px}
+.qok.on{color:#3b8f6b;font-weight:700}.qok.ng{color:#c9475f}
+.names{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.names button{min-height:36px;padding:0 12px;border:1px solid var(--line);border-radius:18px;background:var(--paper);font:inherit;font-size:14px;cursor:pointer}
 .ymd select{min-width:0;width:100%;padding:10px 6px}
 .check{flex-direction:row;align-items:center;gap:10px;color:var(--ink);font-size:15px;min-height:44px}
 .check input{width:22px;height:22px}
@@ -202,6 +209,7 @@ textarea{min-height:60px;resize:vertical}
   <div id="spiral"><canvas id="cv" aria-label="年ごとに1周するらせん。横になぞると月が変わり、押すとその日を選びます"></canvas></div>
   <div id="views" role="group" aria-label="見る角度"><button type="button" data-p="0.45">横から</button><button type="button" data-p="0.78">ななめ</button><button type="button" data-p="1.2">真上</button></div>
   <div id="cal"></div>
+  <canvas id="cv2" aria-hidden="true"></canvas>
   <button type="button" class="jump" id="jUp"></button>
   <button type="button" class="jump" id="jDn"></button>
   <div id="hint" hidden>← なぞると月が変わります →</div>
@@ -246,13 +254,14 @@ textarea{min-height:60px;resize:vertical}
   </div>
   <div id="step2" hidden style="flex-direction:column;gap:12px">
     <h2 id="fmTitle">誕生日を入れる</h2>
-    <label id="lT"><span id="lTt">だれの</span><input type="text" id="fT" required maxlength="40" placeholder="例: 母"></label>
+    <div><label id="lT"><span id="lTt">だれの</span><input type="text" id="fT" required maxlength="40" placeholder="例: 母"></label><div class="names" id="names"></div></div>
     <div><span class="small" id="lDt" style="display:block;margin-bottom:4px;font-size:13px">生まれた日</span>
       <div class="ymd"><select id="fYy" aria-label="年"></select><select id="fMm" aria-label="月"></select><select id="fDd" aria-label="日"></select></div></div>
     <label class="check" id="lY"><input type="checkbox" id="fY">毎年くり返す</label>
     <button type="button" class="linkbtn" id="memoB">メモを足す</button>
     <label id="lM" hidden>メモ<textarea id="fM" maxlength="200"></textarea></label>
     <div class="acts"><button class="btn" id="fDel" type="button">消す</button><button class="btn" id="fCancel" type="button">やめる</button><button class="btn main" id="fSave" type="submit">保存</button></div>
+    <button type="button" class="linkbtn" id="fMore">保存して、もう1人入れる</button>
   </div>
 </form></dialog>
 
@@ -354,7 +363,7 @@ function eventsOn(y,m,d){ return occ(y).filter(o=>o.m===m&&o.d===d); }
 function prevWeekend(y,m,d){ const out=[]; for(let i=1;i<=14&&out.length<2;i++){ const x=new Date(y,m-1,d-i); if(x.getDay()===0||x.getDay()===6) out.unshift(x); } return out; }
 
 /* ---------- らせん ---------- */
-const cv = $('cv'), ctx = cv.getContext('2d');
+const cv = $('cv'), ctx = cv.getContext('2d'), cv2 = $('cv2'), ctx2 = cv2.getContext('2d');
 const R = 1, H = 0.86, SPAN = 2;
 let yaw = 0, yawTarget = 0, pitch = 0.45, hits = [], dayHits = [];
 const yearLen = y=>(Date.UTC(y+1,0,1)-Date.UTC(y,0,1))/864e5;
@@ -372,10 +381,15 @@ function proj(p,W,Hh){
 const alphaOf = y=>{ const d=Math.abs(y-Y); return d===0?1:d===1?.34:.12; };
 function aimYaw(){ const a = ang(frac(Y,M,Math.min(D,dim(Y,M)))); yawTarget = Math.PI/2 - a; }
 
+// 今年の紙が画面のどこにあるか（月の名前を紙に重ねないため）
+function sheetRect(){ const sh=document.querySelector('#cal .sheet:not(.ghost)'); if(!sh) return null;
+  const r=sh.getBoundingClientRect(), o=cv.getBoundingClientRect(); return {l:r.left-o.left,r:r.right-o.left,t:r.top-o.top,b:r.bottom-o.top}; }
 function drawSpiral(){
   const dpr=devicePixelRatio||1, W=cv.clientWidth, Hh=cv.clientHeight, sc=Math.min(W,Hh)*0.43;
   if (cv.width!==W*dpr || cv.height!==Hh*dpr){ cv.width=W*dpr; cv.height=Hh*dpr; }
   ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,W,Hh);
+  if (cv2.width!==W*dpr || cv2.height!==Hh*dpr){ cv2.width=W*dpr; cv2.height=Hh*dpr; }
+  ctx2.setTransform(dpr,0,0,dpr,0,0); ctx2.clearRect(0,0,W,Hh); ctx2.textAlign='center';
   ctx.textAlign='center'; ctx.lineCap='round';
   // 床の影
   { const c=proj({x:0,y:-H*1.05,z:0},W,Hh); const g=ctx.createRadialGradient(c.sx,c.sy,0,c.sx,c.sy,sc*1.05);
@@ -410,13 +424,27 @@ function drawSpiral(){
     for (let d=1; d<=dim(yy,M); d++){ const q=proj(P(yy,frac(yy,M,d)),W,Hh); d===1?ctx.moveTo(q.sx,q.sy):ctx.lineTo(q.sx,q.sy); }
     ctx.strokeStyle=col; ctx.lineWidth=4; ctx.stroke();
   }
-  // 月の名前は手前の半周だけ（紙の後ろに隠れる文字を出さない）
+  // 月の区切りと名前：12か月すべて。手前は濃く、奥は淡く。去年・来年の輪にも区切りの目盛り
+  for (const yy of [Y-1,Y,Y+1]) for (let m=1;m<=12;m++){
+    const a1=proj(P(yy,frac(yy,m,1),R*0.93),W,Hh), a2=proj(P(yy,frac(yy,m,1),R*1.07),W,Hh);
+    ctx.beginPath(); ctx.moveTo(a1.sx,a1.sy); ctx.lineTo(a2.sx,a2.sy);
+    ctx.strokeStyle = yy===Y ? 'rgba(58,46,34,.75)' : yy<Y ? 'rgba(68,115,196,.6)' : 'rgba(232,116,44,.55)';
+    ctx.lineWidth = yy===Y ? 2 : 1.4; ctx.stroke();
+  }
   for (let m=1;m<=12;m++){
-    const q=proj(P(Y,frac(Y,m,1)+0.04,R*1.17),W,Hh);
-    if (q.z<=0 && m!==M) continue;
-    ctx.font=(m===M?'700 14px':'500 12px')+' "Zen Maru Gothic"';
-    ctx.fillStyle = m===M ? '#e8742c' : `rgba(58,46,34,${0.45+0.4*Math.min(1,(q.k-0.8)/0.4)})`;
-    ctx.fillText(m+'月', q.sx, q.sy+4);
+    const q=proj(P(Y,(frac(Y,m,1)+frac(Y,m,dim(Y,m)))/2,R*1.12),W,Hh);
+    const front = q.z>0, cur = m===M;
+    // 手前の月は紙より前（上の層）に描く。奥の月は紙の後ろ
+    const sr = sheetRect(), over = sr && q.sx>sr.l && q.sx<sr.r && q.sy>sr.t && q.sy<sr.b;
+    const c = cur || (front && !over) ? ctx2 : ctx;
+    const t=m+'月'; c.font=(cur?'700 14px':'600 12px')+' "Zen Maru Gothic"';
+    const w=c.measureText(t).width+10, x=Math.min(W-w/2-3,Math.max(w/2+3,q.sx));
+    c.globalAlpha = cur ? 1 : front ? .9 : .55;
+    c.fillStyle = cur ? '#e8742c' : 'rgba(255,252,246,.94)';
+    c.beginPath(); c.roundRect(x-w/2,q.sy-9,w,18,9); c.fill();
+    if (!cur){ c.strokeStyle='rgba(58,46,34,.35)'; c.lineWidth=1; c.stroke(); }
+    c.fillStyle = cur ? '#fff' : '#3a2e22'; c.fillText(t,x,q.sy+4);
+    c.globalAlpha=1;
   }
   // 予定の点
   hits=[];
@@ -586,7 +614,22 @@ function fillYMD(ySel,mSel,dSel,y,m,d){
   mSel.innerHTML=''; for(let v=1; v<=12; v++) mSel.add(new Option(v+'月', v));
   const days=()=>{ const keep=+dSel.value||d; dSel.innerHTML=''; const n=dim(+ySel.value,+mSel.value); for(let v=1; v<=n; v++) dSel.add(new Option(v+'日', v)); dSel.value=Math.min(keep,n); };
   ySel.value=y; mSel.value=m; dSel.value=''; days(); dSel.value=Math.min(d,dim(y,m));
-  ySel.onchange=days; mSel.onchange=days;
+  const box=ySel.closest('.ymd'); let q=box.previousElementSibling;
+  if (!q || !q.classList.contains('quick')){
+    q=document.createElement('div'); q.className='quick';
+    q.innerHTML='<input type="text" inputmode="numeric" autocomplete="off" maxlength="10" placeholder="数字8けたでも入れられます　例 19800515" aria-label="日付を数字8けたで"><span class="qok"></span>';
+    box.before(q);
+  }
+  const inp=q.querySelector('input'), ok=q.querySelector('.qok'); inp.value=''; ok.textContent='';
+  const show=()=>{ ok.textContent=`${ySel.value}年（${wareki(+ySel.value)}）${mSel.value}月${dSel.value}日`; };
+  inp.oninput=()=>{
+    const v=inp.value.replace(/\D/g,'');
+    if (v.length<8){ ok.textContent = v ? 'あと'+(8-v.length)+'けた' : ''; ok.className='qok'; return; }
+    const yy=+v.slice(0,4), mm=+v.slice(4,6), dd=+v.slice(6,8);
+    if (yy<1900 || yy>TY+5 || mm<1 || mm>12 || dd<1 || dd>dim(yy,mm)){ ok.textContent='その日付はありません'; ok.className='qok ng'; return; }
+    ySel.value=yy; mSel.value=mm; days(); dSel.value=dd; ok.className='qok on'; show();
+  };
+  ySel.onchange=mSel.onchange=()=>{ days(); inp.value=''; ok.textContent=''; };
 }
 let editing=null, cat='other';
 function showStep(n){ $('step1').hidden=n!==1; $('step2').hidden=n!==2; $('step2').style.display = n===2?'flex':'none'; }
@@ -598,9 +641,12 @@ function setCat(c, e){
   const [y,m,d] = e ? e.date.split('-').map(Number) : [TY+t[4], M, D];
   fillYMD($('fYy'),$('fMm'),$('fDd'),y,m,d);
   $('fT').value = e ? e.title : '';
+  const NM={bday:['自分','父','母','夫','妻','長男','長女','祖父','祖母'],memorial:['祖父','祖母','父','母','曾祖父','曾祖母'],anniv:['結婚記念日','入籍した日','付き合った日'],other:[]}[GROUP(c)]||[];
+  $('names').innerHTML = e ? '' : NM.map(n=>`<button type="button">${n}</button>`).join('');
+  $('names').querySelectorAll('button').forEach(b=>b.onclick=()=>{ $('fT').value=b.textContent; });
   $('fY').checked = e ? !!e.yearly : false;
   $('fM').value = e ? (e.memo||'') : ''; $('lM').hidden = !(e && e.memo); $('memoB').hidden = !$('lM').hidden;
-  fDel.hidden=!e; fDel.dataset.armed=''; fDel.textContent='消す';
+  fDel.hidden=!e; fDel.dataset.armed=''; fDel.textContent='消す'; $('fMore').hidden=!!e;
   showStep(2);
 }
 function openAdd(){ editing=null; showStep(1); dlg.showModal(); }
@@ -620,8 +666,11 @@ $('fm').addEventListener('submit',ev=>{
   save(); const [y,m,d]=date.split('-').map(Number);
   // 誕生日・命日・記念日は、今年のその日を開く
   Y = FIXED.includes(cat) ? TY : y; M=m; D=d;
+  if (more){ more=false; render(); const c0=cat; editing=null; setCat(c0,null); $('fT').focus(); return; }
   dlg.close(); render();
 });
+let more=false;
+$('fMore').onclick=()=>{ more=true; $('fm').requestSubmit(); };
 fDel.onclick=()=>{
   if(!editing) return;
   if(fDel.dataset.armed!=='1'){ fDel.dataset.armed='1'; fDel.textContent='もう一度押すと消えます'; return; }

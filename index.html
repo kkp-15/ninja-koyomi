@@ -74,9 +74,13 @@ h1{font-size:15px;margin:0 auto 0 0;letter-spacing:.04em;white-space:nowrap}
 .sheet.ghost .n{opacity:calc(var(--gv,.4) * .75)}
 .sheet.ghost.below .n{opacity:var(--gv,.5)}
 .sheet.ghost .w{visibility:visible!important;opacity:calc(var(--gv,.4) - .25)}
-.sheet.ghost.below{background:color-mix(in srgb,#4473c4 7%,transparent);border-color:rgba(68,115,196,.5)}
+.sheet.ghost.below{background:color-mix(in srgb,#4473c4 9%,transparent);border:2px solid rgba(68,115,196,.7)}
+.sheet:not(.ghost){border:2px solid #3a2e22}
+.sheet.ghost .n.su,.sheet.ghost .n.sa,.sheet.ghost .w.su,.sheet.ghost .w.sa{color:inherit!important}
+.sheet.ghost.below .wk{color:#36508a}.sheet.ghost:not(.below) .wk{color:#9a6a3c}
+.sheet.ghost .w{color:inherit}
 .sheet.ghost.below .n{color:#4c6390}
-.sheet.ghost:not(.below){background:color-mix(in srgb,#e8742c 5%,transparent)}
+.sheet.ghost:not(.below){background:color-mix(in srgb,#e8742c 8%,transparent);border:2px solid rgba(232,116,44,.65)}
 .sheet.ghost:not(.below) .n{color:#9a6a3c}
 .sheet.ghost .dots,.sheet.ghost .order{visibility:hidden}
 .sheet.ghost .cell.has .n{opacity:.8;font-weight:700}
@@ -88,6 +92,7 @@ h1{font-size:15px;margin:0 auto 0 0;letter-spacing:.04em;white-space:nowrap}
 .sheet.ghost .yl{color:var(--ink);background:var(--bg);border:1px dashed var(--sub);font-weight:600}
 .sheet.ghost .yl{visibility:visible}
 .sheet.below .yl{color:#36508a;border-color:#4473c4}
+.sheet.ghost:not(.below) .yl{color:#9a6a3c;border:1px solid #e8742c;background:#fff4ea}
 .sheet.below .yl{display:none}
 .sheet .order{position:absolute;left:8px;top:-13px;font-size:11px;color:var(--sub);background:var(--bg);padding:0 6px;border-radius:6px}
 .wk{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}

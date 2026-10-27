@@ -44,6 +44,13 @@ h1{font-size:15px;margin:0 auto 0 0;letter-spacing:.04em;white-space:nowrap}
 #ym{font-family:var(--f-num);font-size:22px;min-width:66px;text-align:center;line-height:1.05}
 #ym small{font-family:var(--f-body);font-size:12px;color:var(--sub);display:block}
 
+/* 選んでいる日の帯 */
+#selbar{display:flex;align-items:baseline;flex-wrap:wrap;gap:2px 10px;margin:6px 0 8px;padding:8px 14px;background:#fff4ea;border:2px solid var(--accent);border-radius:14px}
+#selbar .lb{font-size:12px;font-weight:700;color:var(--accent);width:100%}
+#selbar .dt{font-family:var(--f-num);font-size:26px;font-weight:700;color:var(--ink);line-height:1.15}
+#selbar .dt small{font-size:15px;margin:0 2px}
+#selbar .ev1{font-size:14px;font-weight:700;display:flex;align-items:center;gap:5px}
+#selbar .ev1 i{width:10px;height:10px;border-radius:50%}
 /* 種類（4つ） */
 #cats{display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding-block:8px 2px}
 .chip{border:1px solid var(--line);background:var(--paper);border-radius:999px;padding:0 12px;min-height:44px;display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer}
@@ -87,7 +94,7 @@ h1{font-size:15px;margin:0 auto 0 0;letter-spacing:.04em;white-space:nowrap}
 .sheet.ghost .cell.has .n{opacity:.8;font-weight:700}
 .sheet.ghost .cell.sel .n{opacity:1;color:var(--ink);font-weight:700}
 .sheet.ghost .cell.sel .w{visibility:visible;font-weight:700;color:var(--ink)}
-.sheet.ghost .cell.sel{background:color-mix(in srgb,var(--accent) 22%,transparent);box-shadow:inset 0 0 0 2px var(--accent)}
+.sheet.ghost .cell.sel{background:color-mix(in srgb,var(--accent) 30%,transparent);box-shadow:inset 0 0 0 3px var(--accent)}
 .sheet .yl{position:absolute;right:6px;top:-16px;font-size:13px;font-weight:700;color:#fff;background:var(--ink);padding:1px 9px;border-radius:7px;white-space:nowrap}
 .sheet .yl b{font-family:var(--f-num)}
 .sheet.ghost .yl{color:var(--ink);background:var(--bg);border:1px dashed var(--sub);font-weight:600}
@@ -104,7 +111,14 @@ h1{font-size:15px;margin:0 auto 0 0;letter-spacing:.04em;white-space:nowrap}
 .cell .mark{position:absolute;inset:3px;border-radius:7px;pointer-events:none}
 .cell .dots{display:flex;gap:2px;height:6px;margin-top:1px;justify-content:center}
 .cell .dots i{width:6px;height:6px;border-radius:50%}
-.cell.sel{background:color-mix(in srgb,var(--accent) 14%,transparent);box-shadow:inset 0 0 0 2px var(--accent)}
+.cell.sel{background:var(--accent);box-shadow:0 0 0 3px #fff,0 0 0 5px var(--accent),0 6px 12px -4px rgba(232,116,44,.6);z-index:2}
+.cell.sel .n,.cell.sel .w{color:#fff!important;font-weight:800}
+.cell.sel .mark{display:none}
+.cell.sel .dots i{box-shadow:0 0 0 1.5px #fff}
+/* 予定のある日：種類の色の枠と太い数字 */
+.cell .ring{position:absolute;inset:3px;border-radius:7px;border:2px solid;pointer-events:none}
+.cell.has .n{font-weight:800}
+.cell.sel .ring{display:none}
 .cell.tod .n{color:#fff!important;background:var(--ink)}
 .cell.out{visibility:hidden}
 #pillar{position:absolute;width:3px;margin-left:-1.5px;background:linear-gradient(to top,rgba(232,116,44,0),rgba(232,116,44,.95),rgba(232,116,44,0));transform-origin:50% 100%;pointer-events:none}
@@ -156,8 +170,8 @@ h1{font-size:15px;margin:0 auto 0 0;letter-spacing:.04em;white-space:nowrap}
 
 /* パソコン：らせんと3年分を左右に */
 @media (min-width:960px){
-  .wrap.app{max-width:1000px;display:grid;grid-template-columns:460px 1fr;column-gap:32px;grid-template-areas:"head head" "cats cats" "board detail" "legend detail" "intro detail"}
-  .wrap.app header{grid-area:head}.wrap.app #cats{grid-area:cats}.wrap.app #board{grid-area:board}.wrap.app .legend{grid-area:legend}.wrap.app #intro{grid-area:intro}
+  .wrap.app{max-width:1000px;display:grid;grid-template-columns:460px 1fr;column-gap:32px;grid-template-areas:"head head" "cats cats" "sel detail" "board detail" "legend detail" "intro detail"}
+  .wrap.app header{grid-area:head}.wrap.app #cats{grid-area:cats}.wrap.app #selbar{grid-area:sel}.wrap.app #board{grid-area:board}.wrap.app .legend{grid-area:legend}.wrap.app #intro{grid-area:intro}
   .wrap.app #detail{grid-area:detail;border-top:0;margin-top:4px;align-self:start}
   #bottom .in{max-width:1000px}
 }
@@ -205,6 +219,7 @@ textarea{min-height:60px;resize:vertical}
   <button class="btn" id="menuB">設定</button>
 </header>
 <div id="cats"></div>
+<div id="selbar" aria-live="polite"></div>
 <div id="board">
   <div id="spiral"><canvas id="cv" aria-label="年ごとに1周するらせん。横になぞると月が変わり、押すとその日を選びます"></canvas></div>
   <div id="views" role="group" aria-label="見る角度"><button type="button" data-p="0.45">横から</button><button type="button" data-p="0.78">ななめ</button><button type="button" data-p="1.2">真上</button></div>
@@ -436,7 +451,7 @@ function drawSpiral(){
     const front = q.z>0, cur = m===M;
     // 手前の月は紙より前（上の層）に描く。奥の月は紙の後ろ
     const sr = sheetRect(), over = sr && q.sx>sr.l && q.sx<sr.r && q.sy>sr.t && q.sy<sr.b;
-    const c = cur || (front && !over) ? ctx2 : ctx;
+    const c = front && !over ? ctx2 : ctx;
     const t=m+'月'; c.font=(cur?'700 14px':'600 12px')+' "Zen Maru Gothic"';
     const w=c.measureText(t).width+10, x=Math.min(W-w/2-3,Math.max(w/2+3,q.sx));
     c.globalAlpha = cur ? 1 : front ? .9 : .55;
@@ -453,16 +468,16 @@ function drawSpiral(){
   pts.sort((a,b)=>a.q.z-b.q.z);
   for (const p of pts){
     ctx.globalAlpha=alphaOf(p.y);
-    ctx.beginPath(); ctx.arc(p.q.sx,p.q.sy,(p.big?6.5:4.5)*p.q.k,0,Math.PI*2); ctx.fillStyle=HEX[p.e.cat]||HEX.other; ctx.fill();
+    ctx.beginPath(); ctx.arc(p.q.sx,p.q.sy,(p.big?8:6)*p.q.k,0,Math.PI*2); ctx.fillStyle=HEX[p.e.cat]||HEX.other; ctx.fill(); ctx.strokeStyle='#fff'; ctx.lineWidth=2; ctx.stroke();
     ctx.globalAlpha=1;
     if (Math.abs(p.y-Y)<=1) hits.push({x:p.q.sx,y:p.q.sy,r:16,y0:p.y,m:p.m,d:p.d});
   }
   // 今日と選んだ日
   if (Math.abs(TY-Y)<=SPAN){ const q=proj(P(TY,frac(TY,TM,TD)),W,Hh); ctx.globalAlpha=alphaOf(TY); ctx.beginPath(); ctx.arc(q.sx,q.sy,7*q.k,0,Math.PI*2); ctx.strokeStyle='#3a2e22'; ctx.lineWidth=2; ctx.stroke(); ctx.globalAlpha=1; }
   { const q=proj(P(Y,frac(Y,M,D)),W,Hh);
-    const g=ctx.createRadialGradient(q.sx,q.sy,0,q.sx,q.sy,16*q.k); g.addColorStop(0,'rgba(232,116,44,.45)'); g.addColorStop(1,'rgba(232,116,44,0)');
-    ctx.fillStyle=g; ctx.beginPath(); ctx.arc(q.sx,q.sy,16*q.k,0,Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.arc(q.sx,q.sy,5*q.k,0,Math.PI*2); ctx.fillStyle='#fff'; ctx.fill(); ctx.strokeStyle='#e8742c'; ctx.lineWidth=2.5; ctx.stroke();
+    const g=ctx.createRadialGradient(q.sx,q.sy,0,q.sx,q.sy,26*q.k); g.addColorStop(0,'rgba(232,116,44,.6)'); g.addColorStop(1,'rgba(232,116,44,0)');
+    ctx.fillStyle=g; ctx.beginPath(); ctx.arc(q.sx,q.sy,26*q.k,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(q.sx,q.sy,8*q.k,0,Math.PI*2); ctx.fillStyle='#fff'; ctx.fill(); ctx.strokeStyle='#e8742c'; ctx.lineWidth=2.5; ctx.stroke();
     const a=proj(P(Y-1,frac(Y-1,M,Math.min(D,dim(Y-1,M)))),W,Hh), b=proj(P(Y+1,frac(Y+1,M,Math.min(D,dim(Y+1,M)))),W,Hh);
     ctx.setLineDash([3,4]); ctx.beginPath(); ctx.moveTo(a.sx,a.sy); ctx.lineTo(b.sx,b.sy); ctx.strokeStyle='rgba(232,116,44,.8)'; ctx.lineWidth=2; ctx.stroke(); ctx.setLineDash([]);
   }
@@ -519,12 +534,13 @@ function sheetHTML(y,k){
   for (let d=1; d<=35; d++){
     if (d>n){ cells+='<div class="cell out"></div>'; continue; }
     const w=new Date(y,M-1,d).getDay(), evs=eventsOn(y,M,d);
-    const mark = evs.length ? `<span class="mark" style="background:${HEX[evs[0].e.cat]||HEX.other};opacity:${k===0?(evs.some(o=>o.big)?.4:.28):.18}"></span>` : '';
+    const mark = evs.length ? `<span class="mark" style="background:${HEX[evs[0].e.cat]||HEX.other};opacity:${k===0?(evs.some(o=>o.big)?.45:.32):.3}"></span>` : '';
+    const ring = evs.length&&k===0 ? `<span class="ring" style="border-color:${HEX[evs[0].e.cat]||HEX.other}"></span>` : '';
     const dots = k===0 ? `<span class="dots">${evs.slice(0,3).map(o=>`<i style="background:${HEX[o.e.cat]||HEX.other}"></i>`).join('')}</span>` : '';
     const cls = (d===D?' sel':'')+(y===TY&&M===TM&&d===TD?' tod':'')+(evs.length?' has':'');
     const wc = w===0?'su':w===6?'sa':'';
     cells += k===0
-      ? `<button type="button" class="cell${cls}" data-d="${d}" aria-label="${M}月${d}日（${WD[w]}）${evs.length?'・予定'+evs.length+'件':''}">${mark}<span class="n ${wc}">${d}</span><span class="w ${wc}">${WD[w]}</span>${dots}</button>`
+      ? `<button type="button" class="cell${cls}" data-d="${d}" aria-label="${M}月${d}日（${WD[w]}）${evs.length?'・予定'+evs.length+'件':''}">${mark}${ring}<span class="n ${wc}">${d}</span><span class="w ${wc}">${WD[w]}</span>${dots}</button>`
       : `<div class="cell${cls}">${mark}<span class="n ${wc}">${d}</span><span class="w ${wc}">${WD[w]}</span></div>`;
   }
   return `<div class="sheet${k?' ghost':''}${k<0?' below':''}" style="--k:${k};opacity:${k?.9:1}"><span class="yl"><b>${y}</b>年${relY(y)}${ageLabel(y)}</span><div class="wk">${cells}</div></div>`;
@@ -584,6 +600,9 @@ function render(){
   occCache.clear();
   D=Math.min(D,dim(Y,M));
   $('ym').innerHTML=`${M}月<small>${Y}年</small>`;
+  { const evs=eventsOn(Y,M,D), wd=WD[new Date(Y,M-1,D).getDay()];
+    $('selbar').innerHTML=`<span class="lb">選んでいる日</span><span class="dt">${Y}<small>年</small>${M}<small>月</small>${D}<small>日（${wd}）</small></span>`+
+      (evs.length?`<span class="ev1"><i style="background:${HEX[evs[0].e.cat]||HEX.other}"></i>${esc(evs[0].label)}${evs.length>1?` ほか${evs.length-1}件`:''}</span>`:''); }
   $('jUp').textContent=`▲ ${Y+1}年${relY(Y+1)}へ`; $('jDn').textContent=`▼ ${Y-1}年${relY(Y-1)}へ`;
   $('yPrev').textContent=`‹ ${Y-1}年`; $('yNext').textContent=`${Y+1}年 ›`;
   renderCal(); renderDetail(); renderLegend(); renderIntro(); renderCats(); spin(); drawSpiral();

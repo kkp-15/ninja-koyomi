@@ -110,11 +110,11 @@ summary{cursor:pointer;font-weight:700;min-height:32px}
   <p id="gift" class="note" style="padding:0;margin:10px 0 0" hidden></p>
   <a class="go" href="/">家族の誕生日をらせんカレンダーに入れる</a>
 
-  <h2>厄年早見表（数え年）</h2>
-  <div class="tabs" role="group" aria-label="年"><button type="button" data-y="0" aria-pressed="true"></button><button type="button" data-y="1" aria-pressed="false"></button></div>
+  <h2>2026年・2027年の厄年早見表（数え年）</h2>
+  <div class="tabs" role="group" aria-label="年"><button type="button" data-y="0" aria-pressed="false">2026年（令和8年）</button><button type="button" data-y="1" aria-pressed="true">2027年（令和9年）</button></div>
   <div class="cols">
-    <table class="tbl"><thead><tr><th colspan="2">男性</th></tr></thead><tbody id="qM"></tbody></table>
-    <table class="tbl"><thead><tr><th colspan="2">女性</th></tr></thead><tbody id="qF"></tbody></table>
+    <table class="tbl"><thead><tr><th colspan="2">男性</th></tr></thead><tbody id="qM"><tr class=""><th>前厄<span class="s">数え24歳</span></th><td>2004年<span class="s">平成16年生</span></td></tr><tr class="now"><th>本厄<span class="s">数え25歳</span></th><td>2003年<span class="s">平成15年生</span></td></tr><tr class=""><th>後厄<span class="s">数え26歳</span></th><td>2002年<span class="s">平成14年生</span></td></tr><tr class=""><th>前厄<span class="s">数え41歳</span></th><td>1987年<span class="s">昭和62年生</span></td></tr><tr class="now"><th>大厄<span class="s">数え42歳</span></th><td>1986年<span class="s">昭和61年生</span></td></tr><tr class=""><th>後厄<span class="s">数え43歳</span></th><td>1985年<span class="s">昭和60年生</span></td></tr><tr class=""><th>前厄<span class="s">数え60歳</span></th><td>1968年<span class="s">昭和43年生</span></td></tr><tr class="now"><th>本厄<span class="s">数え61歳</span></th><td>1967年<span class="s">昭和42年生</span></td></tr><tr class=""><th>後厄<span class="s">数え62歳</span></th><td>1966年<span class="s">昭和41年生</span></td></tr></tbody></table>
+    <table class="tbl"><thead><tr><th colspan="2">女性</th></tr></thead><tbody id="qF"><tr class=""><th>前厄<span class="s">数え18歳</span></th><td>2010年<span class="s">平成22年生</span></td></tr><tr class="now"><th>本厄<span class="s">数え19歳</span></th><td>2009年<span class="s">平成21年生</span></td></tr><tr class=""><th>後厄<span class="s">数え20歳</span></th><td>2008年<span class="s">平成20年生</span></td></tr><tr class=""><th>前厄<span class="s">数え32歳</span></th><td>1996年<span class="s">平成8年生</span></td></tr><tr class="now"><th>大厄<span class="s">数え33歳</span></th><td>1995年<span class="s">平成7年生</span></td></tr><tr class=""><th>後厄<span class="s">数え34歳</span></th><td>1994年<span class="s">平成6年生</span></td></tr><tr class=""><th>前厄<span class="s">数え36歳</span></th><td>1992年<span class="s">平成4年生</span></td></tr><tr class="now"><th>本厄<span class="s">数え37歳</span></th><td>1991年<span class="s">平成3年生</span></td></tr><tr class=""><th>後厄<span class="s">数え38歳</span></th><td>1990年<span class="s">平成2年生</span></td></tr><tr class=""><th>前厄<span class="s">数え60歳</span></th><td>1968年<span class="s">昭和43年生</span></td></tr><tr class="now"><th>本厄<span class="s">数え61歳</span></th><td>1967年<span class="s">昭和42年生</span></td></tr><tr class=""><th>後厄<span class="s">数え62歳</span></th><td>1966年<span class="s">昭和41年生</span></td></tr></tbody></table>
   </div>
 
   <h2>数え方について</h2>
@@ -210,9 +210,10 @@ function render(){
 }
 
 // 早見表（今年と来年）
-let qy=TY;
+// 11月からは来年の表を先に見せる（年末に来年の厄年を調べる人が多い）
+let qy = new Date().getMonth()>=10 ? TY+1 : TY;
 function renderQuick(){
-  document.querySelectorAll('.tabs button').forEach(b=>{ const y=TY+ +b.dataset.y; b.textContent=`${y}年`; b.setAttribute('aria-pressed', String(y===qy)); });
+  document.querySelectorAll('.tabs button').forEach(b=>{ const y=TY+ +b.dataset.y; b.textContent=`${y}年（${wareki(y)}）`; b.setAttribute('aria-pressed', String(y===qy)); });
   const line=(s)=>{ const out=[]; for (const a of YAKU[s]) for (const [k,d] of [['前厄',-1],['本厄',0],['後厄',1]]){ const kz=a+d, by=qy-kz+1; out.push(`<tr class="${d===0?'now':''}"><th>${d===0&&a===TAIYAKU[s]?'大厄':k}<span class="s">数え${kz}歳</span></th><td>${by}年<span class="s">${wareki(by)}生</span></td></tr>`); } return out.join(''); };
   $('qM').innerHTML=line('m'); $('qF').innerHTML=line('f');
 }

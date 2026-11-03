@@ -636,7 +636,7 @@ function fillYMD(ySel,mSel,dSel,y,m,d){
   const box=ySel.closest('.ymd'); let q=box.previousElementSibling;
   if (!q || !q.classList.contains('quick')){
     q=document.createElement('div'); q.className='quick';
-    q.innerHTML='<input type="text" inputmode="numeric" autocomplete="off" maxlength="10" placeholder="数字8けたでも入れられます　例 19800515" aria-label="日付を数字8けたで"><span class="qok"></span>';
+    q.innerHTML='<input type="text" inputmode="numeric" autocomplete="off" maxlength="10" placeholder="8けたでも可 例 19800515" aria-label="日付を数字8けたで"><span class="qok"></span>';
     box.before(q);
   }
   const inp=q.querySelector('input'), ok=q.querySelector('.qok'); inp.value=''; ok.textContent='';

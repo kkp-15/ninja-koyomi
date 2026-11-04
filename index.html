@@ -202,6 +202,20 @@ textarea{min-height:60px;resize:vertical}
 .pick span{font-size:13px;color:var(--sub)}
 .small{font-size:12px;color:var(--sub);line-height:1.6;margin:0}
 .linkbtn{border:0;background:none;color:var(--sub);text-decoration:underline;padding:0;min-height:32px;cursor:pointer;align-self:flex-start;font-size:13px}
+/* 本の紹介（Amazonアソシエイト・2026-11-04） */
+.bk{margin-top:22px}
+.bk>h2{margin:0;padding-bottom:4px;border-bottom:1px solid var(--line);font-size:18px;font-weight:800}
+.bk-pr{margin:8px 0 2px;font-size:12px;line-height:1.6;color:var(--sub)}
+.bk-pr span{display:inline-block;margin-right:6px;padding:0 5px;border:1.5px solid var(--sub);border-radius:3px;font-weight:800}
+.bk-list{margin:0;padding:0;list-style:none}
+.bk-list li{border-bottom:1px solid var(--line)}
+.bk-list a{display:flex;flex-direction:column;justify-content:center;min-height:52px;padding:8px 26px 8px 0;position:relative;text-decoration:none;color:var(--ink)}
+.bk-list b{font-size:15px;font-weight:800;line-height:1.45}
+.bk-list span{font-size:13px;line-height:1.5;color:var(--sub)}
+.bk-list em{font-style:normal;font-weight:800;color:var(--ink)}
+.bk-list a::after{content:"→";position:absolute;right:4px;top:50%;transform:translateY(-50%);color:var(--accent)}
+.bk-ku{margin:8px 0 0;font-size:13px;line-height:1.7;color:var(--sub)}
+.bk-ku a{font-weight:800;color:var(--ink)}
 .kkp-ad{text-align:center;margin:1.4rem auto 0;max-width:680px;min-height:288px;padding-top:6px}
 .kkp-ad-label{font-size:11px;color:#999;letter-spacing:.08em;margin:0 0 6px;line-height:1}
 .kkp-ad ins.adsbygoogle{display:block;width:300px;height:250px;margin:0 auto}
@@ -249,6 +263,17 @@ textarea{min-height:60px;resize:vertical}
        data-ad-format="rectangle"
        data-full-width-responsive="false"></ins>
 </div>
+<!-- 本の紹介（Amazonアソシエイト・2026-11-04。価格は書かない・読み放題は置いた日に商品ページで確認） -->
+<section class="bk wrap" aria-labelledby="bk-h">
+  <h2 id="bk-h">お祝い・法事・しきたりの本</h2>
+  <p class="bk-pr"><span>PR</span>Amazonのリンクです。Amazonのアソシエイトとして、web忍者の砦は適格販売により収入を得ています。</p>
+  <ul class="bk-list">
+    <li><a href="https://www.amazon.co.jp/dp/B081RPXWVM?tag=kkp15-22" target="_blank" rel="nofollow sponsored noopener" onclick="if(typeof gtag==='function')gtag('event','aff_amazon_book')"><b>図解 日本人なら知っておきたい しきたり大全</b><span>岩下宣子・<em>読み放題の対象</em></span></a></li>
+    <li><a href="https://www.amazon.co.jp/dp/4074632373?tag=kkp15-22" target="_blank" rel="nofollow sponsored noopener" onclick="if(typeof gtag==='function')gtag('event','aff_amazon_book')"><b>最新版 葬儀・法要・相続 マナーと手続きのすべて</b><span>主婦の友社・<em>読み放題の対象</em></span></a></li>
+    <li><a href="https://www.amazon.co.jp/dp/4422230344?tag=kkp15-22" target="_blank" rel="nofollow sponsored noopener" onclick="if(typeof gtag==='function')gtag('event','aff_amazon_book')"><b>年中行事読本 日本の四季を愉しむ歳時ごよみ</b><span>岡田芳朗・松井吉昭</span></a></li>
+  </ul>
+  <p class="bk-ku">「読み放題の対象」の本は読み放題で読めます（30日の無料体験あり・初めての人だけ）。<a href="https://www.amazon.co.jp/kindle-dbs/hz/signup?tag=kkp15-22" target="_blank" rel="nofollow sponsored noopener" onclick="if(typeof gtag==='function')gtag('event','aff_amazon_ku')">Kindle Unlimitedの無料体験</a></p>
+</section>
 <div id="bottom"><div class="in">
   <button class="btn" id="yPrev"></button>
   <button class="btn" id="todayB">今日</button>

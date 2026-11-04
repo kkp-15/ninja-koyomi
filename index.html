@@ -51,6 +51,7 @@ h1{font-size:15px;margin:0 auto 0 0;letter-spacing:.04em;white-space:nowrap}
 #selbar .dt small{font-size:15px;margin:0 2px}
 #selbar .ev1{font-size:14px;font-weight:700;display:flex;align-items:center;gap:5px}
 #selbar .ev1 i{width:10px;height:10px;border-radius:50%}
+#selbar .left{font-size:15px;font-weight:700;color:var(--accent)}
 /* 種類（4つ） */
 #cats{display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding-block:8px 2px}
 .chip{border:1px solid var(--line);background:var(--paper);border-radius:999px;padding:0 12px;min-height:44px;display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer}
@@ -353,6 +354,10 @@ let settings = {};
 try { settings = JSON.parse(localStorage.getItem(SKEY)) || {}; } catch(e) { settings = {}; }
 function saveSettings(){ try{ localStorage.setItem(SKEY, JSON.stringify(settings)); }catch(e){} }
 function ageAt(birth, y, m, d){ if(!birth) return null; const [by,bm,bd]=birth.split('-').map(Number); let a=y-by; if (m<bm || (m===bm && d<bd)) a--; return a; }
+// 今日から y年m月d日まで何日か（過ぎていたらマイナス）
+function daysTo(y,m,d){ return Math.round((Date.UTC(y,m-1,d)-Date.UTC(TY,TM-1,TD))/864e5); }
+// 毎年くる日（2/29はうるう年でない年は2/28）が次に来る年。今日がその日なら今年
+function nextYear(y,m,d){ const at=yy=>(m===2&&d===29&&dim(yy,2)===28)?28:d; let ny=Math.max(TY,y); if (daysTo(ny,m,at(ny))<0) ny++; return ny; }
 function relY(y){ const r={'-1':'（去年）','0':'（今年）','1':'（来年）'}[y-TY]; return r||''; }
 function ageLabel(y){ const a=ageAt(settings.birthday, y, M, Math.min(D,dim(y,M))); return a===null||a<0 ? '' : `・${a}歳`; }
 
@@ -627,6 +632,7 @@ function render(){
   $('ym').innerHTML=`${M}月<small>${Y}年</small>`;
   { const evs=eventsOn(Y,M,D), wd=WD[new Date(Y,M-1,D).getDay()];
     $('selbar').innerHTML=`<span class="lb">選んでいる日</span><span class="dt">${Y}<small>年</small>${M}<small>月</small>${D}<small>日（${wd}）</small></span>`+
+      (evs.length&&daysTo(Y,M,D)>=0?`<span class="left">${daysTo(Y,M,D)===0?'今日':`あと${daysTo(Y,M,D)}日`}</span>`:'')+
       (evs.length?`<span class="ev1"><i style="background:${HEX[evs[0].e.cat]||HEX.other}"></i>${esc(evs[0].label)}${evs.length>1?` ほか${evs.length-1}件`:''}</span>`:''); }
   $('jUp').textContent=`▲ ${Y+1}年${relY(Y+1)}へ`; $('jDn').textContent=`▼ ${Y-1}年${relY(Y-1)}へ`;
   $('yPrev').textContent=`‹ ${Y-1}年`; $('yNext').textContent=`${Y+1}年 ›`;
@@ -708,8 +714,8 @@ $('fm').addEventListener('submit',ev=>{
   if (sample){ events=[]; sample=false; }
   if (editing) Object.assign(editing,v); else events.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),...v});
   save(); const [y,m,d]=date.split('-').map(Number);
-  // 誕生日・命日・記念日は、今年のその日を開く
-  Y = FIXED.includes(cat) ? TY : y; M=m; D=d;
+  // 誕生日・命日・記念日は、次に来るその日を開く（今年の日がもう過ぎていたら来年）
+  Y = FIXED.includes(cat) ? nextYear(y,m,d) : y; M=m; D=d;
   if (more){ more=false; render(); const c0=cat; editing=null; setCat(c0,null); $('fT').focus(); return; }
   dlg.close(); render();
 });

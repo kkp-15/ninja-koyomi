@@ -11,7 +11,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Remove non-public files
-        run: rm -rf .github wrangler.jsonc .assetsignore .gitignore
+        run: rm -rf ./*.md .github wrangler.jsonc .assetsignore .gitignore
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
         with:

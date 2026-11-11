@@ -166,6 +166,14 @@ h1{font-size:15px;margin:0 auto 0 0;letter-spacing:.04em;white-space:nowrap}
 .ev .t small{display:block;font-size:13px;color:var(--sub)}
 .ev i{width:10px;height:10px;border-radius:50%;flex:none}
 .ev em{font-style:normal;font-size:12px;color:var(--sub);flex:none}
+/* 押した日の前後（らせんの内側のマスは小さいので、ここで選び直す） */
+#near{display:flex;gap:4px;margin:8px 0 4px}
+#near button{flex:1;min-width:0;min-height:44px;padding:4px 0;border:1px solid var(--line);background:var(--paper);border-radius:8px;cursor:pointer;line-height:1.2;font-size:14px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+#near button small{font-size:12px;color:var(--sub)}
+#near button.su small{color:#c9475f}#near button.sa small{color:#3d6fb4}
+#near button.sel{border:2px solid var(--accent);font-weight:700}
+#near button.has{background:#fff4ea}
+.ev .ics{display:block;margin-top:2px;min-height:40px;padding:0;border:0;background:none;color:#1a6fc4;text-decoration:underline;font-size:14px;cursor:pointer;text-align:left}
 .empty{color:var(--sub);font-size:14px;min-height:44px;display:flex;align-items:center}
 
 #bottom{position:fixed;left:0;right:0;bottom:0;z-index:5;background:linear-gradient(transparent,var(--bg) 35%);
@@ -175,8 +183,8 @@ h1{font-size:15px;margin:0 auto 0 0;letter-spacing:.04em;white-space:nowrap}
 
 /* パソコン：らせんと3年分を左右に */
 @media (min-width:960px){
-  .wrap.app{max-width:1000px;display:grid;grid-template-columns:460px 1fr;column-gap:32px;grid-template-areas:"head head" "cats cats" "sel detail" "board detail" "legend detail" "intro detail"}
-  .wrap.app header{grid-area:head}.wrap.app #cats{grid-area:cats}.wrap.app #selbar{grid-area:sel}.wrap.app #board{grid-area:board}.wrap.app .legend{grid-area:legend}.wrap.app #intro{grid-area:intro}
+  .wrap.app{max-width:1000px;display:grid;grid-template-columns:460px 1fr;column-gap:32px;grid-template-areas:"head head" "cats cats" "sel detail" "board detail" "near detail" "legend detail" "intro detail"}
+  .wrap.app header{grid-area:head}.wrap.app #cats{grid-area:cats}.wrap.app #selbar{grid-area:sel}.wrap.app #board{grid-area:board}.wrap.app #near{grid-area:near}.wrap.app .legend{grid-area:legend}.wrap.app #intro{grid-area:intro}
   .wrap.app #detail{grid-area:detail;border-top:0;margin-top:4px;align-self:start}
   #bottom .in{max-width:1000px}
 }
@@ -253,6 +261,7 @@ textarea{min-height:60px;resize:vertical}
   <button type="button" class="jump" id="jDn"></button>
   <div id="hint" hidden>← なぞると月が変わります →</div>
 </div>
+<div id="near" hidden role="group" aria-label="選んだ日の前後"></div>
 <div class="legend" id="legend"></div>
 <div id="intro" hidden>
   <p id="introT"></p>
@@ -559,7 +568,7 @@ cv.addEventListener('pointerup',e=>{
     let best=null, bd=1e9;
     for (const h of hits){ const d=Math.hypot(h.x-x,h.y-y); if(d<h.r&&d<bd){bd=d;best=h;} }
     if (!best){ for (const h of dayHits){ const d=Math.hypot(h.x-x,h.y-y)-h.z*4; if(d<bd){bd=d;best=h;} } if (bd>26) best=null; }
-    if (best){ Y=best.y0; M=best.m; D=best.d; render(); }
+    if (best){ Y=best.y0; M=best.m; D=best.d; nearOn=true; render(); }
   } else if (drag && moved){
     if (Math.abs(drag.yaw-yaw)>0.05){ const f=fracOfFront(), dt=new Date(Date.UTC(Y,0,1)+f*yearLen(Y)*864e5); M=dt.getUTCMonth()+1; }
     try{ localStorage.setItem(HKEY,'1'); }catch(_){} $('hint').hidden=true;
@@ -602,7 +611,7 @@ function renderCal(){
     p.style.transform=`translateZ(${-G}px) rotateX(90deg)`;
     cal.querySelector('.sheet:not(.ghost)').appendChild(p);
   }
-  cal.querySelectorAll('.cell[data-d]').forEach(c=>c.onclick=()=>{ D=+c.dataset.d; render(); });
+  cal.querySelectorAll('.cell[data-d]').forEach(c=>c.onclick=()=>{ D=+c.dataset.d; nearOn=true; render(); });
 }
 let sx=null;
 cal.addEventListener('pointerdown',e=>{sx=e.clientX;});
@@ -614,16 +623,17 @@ function renderDetail(){
   $('dTitle').innerHTML=`${M}月${D}日<small>選んだ日の去年・今年・来年</small>`;
   $('rows').innerHTML=[Y+1,Y,Y-1].map(y=>{
     const dd=Math.min(D,dim(y,M)), evs=eventsOn(y,M,dd), wd=WD[new Date(y,M-1,dd).getDay()];
-    const list=evs.length?evs.map(o=>{
+    const list=evs.length?evs.map((o,i)=>{
       let sub='';
       if (o.hoyo){ const dw=new Date(y,o.m-1,o.d).getDay(); sub = (dw===0||dw===6) ? '当日が土日です' : '前の土日: '+prevWeekend(y,o.m,o.d).map(md).join('・'); }
-      const ed = !sample;
-      return `<div class="ev${ed?' edit':''}" ${ed?`data-id="${o.e.id}" role="button" tabindex="0"`:''}><i style="background:${HEX[o.e.cat]||HEX.other}"></i><span class="t">${esc(o.label)}${sub?`<small>${sub}</small>`:''}</span>${ed?'<em>直す</em>':''}</div>`;
+      const ed = !sample, ics = ed && y===Y ? `<button type="button" class="ics" data-i="${i}">スマホのカレンダーに入れる</button>` : '';
+      return `<div class="ev${ed?' edit':''}" ${ed?`data-id="${o.e.id}" role="button" tabindex="0"`:''}><i style="background:${HEX[o.e.cat]||HEX.other}"></i><span class="t">${esc(o.label)}${sub?`<small>${sub}</small>`:''}${ics}</span>${ed?'<em>直す</em>':''}</div>`;
     }).join(''):'<div class="empty">予定なし</div>';
     const ag=ageAt(settings.birthday,y,M,dd); const agt = ag===null||ag<0 ? '' : `<br>${ag}歳`;
     return `<div class="yr ${y===Y?'cur':'other'}"><div class="y">${y}年${relY(y)?'<br>'+relY(y).slice(1,-1):''}<br>（${wd}）${agt}</div><div>${list}</div></div>`;
   }).join('');
-  document.querySelectorAll('#rows .ev.edit').forEach(el=>{ const go=()=>openEdit(events.find(e=>e.id===el.dataset.id)); el.onclick=go; el.onkeydown=e=>{ if(e.key==='Enter') go(); }; });
+  document.querySelectorAll('#rows .ics').forEach(b=>b.onclick=ev=>{ ev.stopPropagation(); const o=eventsOn(Y,M,Math.min(D,dim(Y,M)))[+b.dataset.i]; if(o){ saveIcs(o,Y); b.textContent='ファイルを作りました（開くとカレンダーに入ります）'; } });
+  document.querySelectorAll('#rows .ev.edit').forEach(el=>{ const go=()=>openEdit(events.find(e=>e.id===el.dataset.id)); el.onclick=go; el.onkeydown=e=>{ if(e.key==='Enter'&&e.target===el) go(); }; });
 }
 
 function renderLegend(){
@@ -641,6 +651,47 @@ function renderIntro(){
   $('cats').hidden = sample;
 }
 
+let nearOn=false;
+function renderNear(){
+  const box=$('near'); box.hidden=!nearOn; if(!nearOn) return;
+  let h='';
+  for (let k=-3;k<=3;k++){
+    const x=new Date(Y,M-1,D+k), y=x.getFullYear(), m=x.getMonth()+1, d=x.getDate(), w=x.getDay(), n=eventsOn(y,m,d).length;
+    h+=`<button type="button" class="${k===0?'sel ':''}${n?'has ':''}${w===0?'su':w===6?'sa':''}" data-k="${k}" aria-label="${m}月${d}日（${WD[w]}）${n?'・予定'+n+'件':''}"${k===0?' aria-current="date"':''}>${m===M?'':m+'/'}${d}<small>${WD[w]}</small></button>`;
+  }
+  box.innerHTML=h;
+  box.querySelectorAll('button').forEach(b=>b.onclick=()=>{ const x=new Date(Y,M-1,D+(+b.dataset.k)); Y=x.getFullYear(); M=x.getMonth()+1; D=x.getDate(); render(); });
+}
+/* ---------- スマホのカレンダーへ（.ics をこの端末で作るだけ。どこにも送らない） ---------- */
+function icsText(o,y){
+  const e=o.e, [ey,em,ed]=e.date.split('-').map(Number), c=GROUP(e.cat);
+  // 回忌・中陰（初七日など）は1回きり。誕生日・記念日・命日・毎年の予定は毎年くり返す
+  const yearly = !o.hoyo && (c==='bday'||c==='anniv'||c==='memorial'||e.yearly);
+  const title = c==='bday' ? `${e.title}の誕生日` : c==='memorial' ? (o.hoyo ? o.label : `${e.title}の命日`) : c==='anniv' ? e.title : (yearly ? e.title : o.label);
+  const p2=n=>String(n).padStart(2,'0'), ymd=(a,b,d)=>`${a}${p2(b)}${p2(d)}`;
+  const s=new Date(y,o.m-1,o.d), t=new Date(y,o.m-1,o.d+1), now=new Date();
+  const icsEsc=v=>String(v).replace(/\\/g,'\\\\').replace(/[,;]/g,m=>'\\'+m).replace(/\r?\n/g,'\\n');
+  const L=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//web忍者の砦//らせんカレンダー//JA','CALSCALE:GREGORIAN','BEGIN:VEVENT',
+    `UID:${e.id}-${ymd(y,o.m,o.d)}@koyomi.kkpwebninja.com`,
+    `DTSTAMP:${now.getUTCFullYear()}${p2(now.getUTCMonth()+1)}${p2(now.getUTCDate())}T${p2(now.getUTCHours())}${p2(now.getUTCMinutes())}00Z`,
+    `DTSTART;VALUE=DATE:${ymd(s.getFullYear(),s.getMonth()+1,s.getDate())}`,
+    `DTEND;VALUE=DATE:${ymd(t.getFullYear(),t.getMonth()+1,t.getDate())}`,
+    `SUMMARY:${icsEsc(title)}`];
+  if (yearly) L.push(em===2&&ed===29 ? 'RRULE:FREQ=YEARLY;BYMONTH=2;BYMONTHDAY=-1' : 'RRULE:FREQ=YEARLY');
+  if (e.memo) L.push(`DESCRIPTION:${icsEsc(e.memo)}`);
+  L.push('BEGIN:VALARM','ACTION:DISPLAY',`DESCRIPTION:${icsEsc(title)}`,'TRIGGER:PT9H','END:VALARM','END:VEVENT','END:VCALENDAR');
+  // 1行75バイトで折り返す（RFC 5545）
+  const enc=new TextEncoder();
+  return L.map(line=>{ let out='', cur='', n=0; for (const ch of line){ const b=enc.encode(ch).length; if(n+b>(out?74:75)){ out+=(out?'\r\n ':'')+cur; cur=''; n=0; } cur+=ch; n+=b; } return out+(out?'\r\n ':'')+cur; }).join('\r\n')+'\r\n';
+}
+function saveIcs(o,y){
+  const txt=icsText(o,y), a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([txt],{type:'text/calendar;charset=utf-8'}));
+  a.download=(o.e.title.replace(/[\\/:*?"<>|]/g,'')||'koyomi')+'.ics';
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+  try{ gtag('event','koyomi_ics',{cat:o.e.cat}); }catch(_){}
+}
+
 function render(){
   occCache.clear();
   D=Math.min(D,dim(Y,M));
@@ -651,7 +702,7 @@ function render(){
       (evs.length?`<span class="ev1"><i style="background:${HEX[evs[0].e.cat]||HEX.other}"></i>${esc(evs[0].label)}${evs.length>1?` ほか${evs.length-1}件`:''}</span>`:''); }
   $('jUp').textContent=`▲ ${Y+1}年${relY(Y+1)}へ`; $('jDn').textContent=`▼ ${Y-1}年${relY(Y-1)}へ`;
   $('yPrev').textContent=`‹ ${Y-1}年`; $('yNext').textContent=`${Y+1}年 ›`;
-  renderCal(); renderDetail(); renderLegend(); renderIntro(); renderCats(); spin(); drawSpiral();
+  renderCal(); renderNear(); renderDetail(); renderLegend(); renderIntro(); renderCats(); spin(); drawSpiral();
 }
 function moveMonth(n){ M+=n; if(M<1){M=12;Y--;} if(M>12){M=1;Y++;} render(); }
 $('prevM').onclick=()=>moveMonth(-1);
